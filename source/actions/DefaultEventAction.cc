@@ -86,21 +86,14 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
 
       G4TrajectoryContainer* tc = event->GetTrajectoryContainer();
       if (tc) {
-        // in interactive mode, a G4TrajectoryContainer would exist
-        // but the trajectories will not cast to Trajectory
-        Trajectory* trj = dynamic_cast<Trajectory*>((*tc)[0]);
-        if (trj == nullptr){
-          G4Exception("[DefaultEventAction]", "EndOfEventAction()", FatalException,
-                      "DefaultTrackingAction is required when using DefaultEventAction");
-        }
-        for (unsigned int i=0; i<tc->size(); ++i) {
+        for (unsigned int i = 0; i < tc->size(); ++i) {
           Trajectory* tr = dynamic_cast<Trajectory*>((*tc)[i]);
+          if (tr == nullptr) {
+            G4Exception("[DefaultEventAction]", "EndOfEventAction()", FatalException,
+                        "DefaultTrackingAction is required when using DefaultEventAction");
+          }
           edep += tr->GetEnergyDeposit();
         }
-      }
-      else {
-        G4Exception("[DefaultEventAction]", "EndOfEventAction()", FatalException,
-                    "DefaultTrackingAction is required when using DefaultEventAction");
       }
 
       PersistencyManager* pm = dynamic_cast<PersistencyManager*>

@@ -15,6 +15,7 @@
 #include "BoxPointSampler.h"
 #include "Visibilities.h"
 #include "NextHDDEMOSiPM.h"
+#include <G4ExtrudedSolid.hh>
 
 #include <G4GenericMessenger.hh>
 #include <G4Box.hh>
@@ -33,14 +34,16 @@ using namespace nexus;
 
 NextHDDEMOSiPMBoard::NextHDDEMOSiPMBoard():
   GeometryBase     (),
-  size_            ( 80.00  * mm),
-  pitch_           ( 10.00  * mm),
-  margin_          (  6.775 * mm),
-  board_thickness_ (  0.2   * mm),
-  mask_thickness_  (  2.0   * mm),
+  size_            ( 79.00  * mm), // Ancho y alto de las boards
+  pitch_           ( 10.00  * mm), // Distancia entre SiPM en la board
+  // margin_          (  4.5 * mm), // Dist desde el borde de la board al 1er SiPM eran 6.775 mm
+  margin_          ((size_ - 7 * pitch_) / 2.),   // = (79 - 70)/2 = 5.0 mm, no 4.5 mm
+  board_thickness_ (  0.2   * mm), // solo afecta a la dist z de las columnas
+  mask_thickness_  (  2.0   * mm), 
   time_binning_    (1. * microsecond),
-  visibility_      (true),
-  sipm_visibility_ (false),
+  visibility_      (true), // vis. de las columnas
+  triangular_      (false),
+  sipm_visibility_ (true), // vis. de la regilla 
   mpv_             (nullptr),
   vtxgen_          (nullptr),
   sipm_            (new NextHDDEMOSiPM())
@@ -86,9 +89,20 @@ void NextHDDEMOSiPMBoard::Construct()
 
   G4String board_name = "SIPM_BOARD";
 
-  G4Box* board_solid_vol =
-    new G4Box(board_name, size_/2., size_/2., (board_thickness_ + mask_thickness_)/2.);
+  G4VSolid* board_solid_vol;
 
+  if (!triangular_) {
+    board_solid_vol = new G4Box(board_name, size_/2., size_/2., (board_thickness_ + mask_thickness_)/2.);
+  } else {
+    std::vector<G4TwoVector> tri_vtx;
+    tri_vtx.push_back(G4TwoVector(-size_/2., -size_/2.));
+    tri_vtx.push_back(G4TwoVector(+size_/2., -size_/2.));
+    tri_vtx.push_back(G4TwoVector(-size_/2., +size_/2.));
+
+    board_solid_vol = new G4ExtrudedSolid(board_name, tri_vtx,
+                          (board_thickness_ + mask_thickness_)/2.,
+                          G4TwoVector(0,0), 1., G4TwoVector(0,0), 1.);
+  }
 
   G4Material* kapton = G4NistManager::Instance()->FindOrBuildMaterial("G4_KAPTON");
   // In Geant4 11.0.0, a bug in treating the OpBoundaryProcess produced in the surface makes the code fail.
@@ -106,8 +120,20 @@ void NextHDDEMOSiPMBoard::Construct()
   G4String mask_name = "SIPM_BOARD_MASK";
   G4double mask_zpos = board_thickness_/2.;
 
-  G4Box* mask_solid_vol =
-    new G4Box(mask_name, size_/2., size_/2., mask_thickness_/2.);
+  G4VSolid* mask_solid_vol;
+
+  if (!triangular_) {
+    mask_solid_vol = new G4Box(mask_name, size_/2., size_/2., mask_thickness_/2.);
+  } else {
+    std::vector<G4TwoVector> tri_vtx;
+    tri_vtx.push_back(G4TwoVector(-size_/2., -size_/2.));
+    tri_vtx.push_back(G4TwoVector(+size_/2., -size_/2.));
+    tri_vtx.push_back(G4TwoVector(-size_/2., +size_/2.));
+
+    mask_solid_vol = new G4ExtrudedSolid(mask_name, tri_vtx,
+                        mask_thickness_/2.,
+                        G4TwoVector(0,0), 1., G4TwoVector(0,0), 1.);
+  }
 
   G4Material* teflon = G4NistManager::Instance()->FindOrBuildMaterial("G4_TEFLON");
   // teflon is the material used in the sipm-board masks which are covered by a G4LogicalSkinSurface
@@ -133,8 +159,22 @@ void NextHDDEMOSiPMBoard::Construct()
   G4double wls_thickness = 1. * um;
   G4double mask_wls_zpos = mask_thickness_/2. - wls_thickness/2.;
 
-  G4Box* mask_wls_solid_vol =
-    new G4Box(mask_wls_name, size_/2., size_/2., wls_thickness/2.);
+  G4VSolid* mask_wls_solid_vol; // <-- Cambiado de G4Box* a G4VSolid*
+
+  // Aplicamos la misma lógica condicional que en la máscara:
+  if (!triangular_) {
+    mask_wls_solid_vol =
+      new G4Box(mask_wls_name, size_/2., size_/2., wls_thickness/2.);
+  } else {
+    std::vector<G4TwoVector> tri_vtx;
+    tri_vtx.push_back(G4TwoVector(-size_/2., -size_/2.));
+    tri_vtx.push_back(G4TwoVector(+size_/2., -size_/2.));
+    tri_vtx.push_back(G4TwoVector(-size_/2., +size_/2.));
+
+    mask_wls_solid_vol = new G4ExtrudedSolid(mask_wls_name, tri_vtx,
+                        wls_thickness/2.,
+                        G4TwoVector(0,0), 1., G4TwoVector(0,0), 1.);
+  }
 
   G4Material* tpb = materials::TPB();
   tpb->SetMaterialPropertiesTable(opticalprops::TPB());
@@ -240,15 +280,13 @@ void NextHDDEMOSiPMBoard::Construct()
   G4VPhysicalVolume* mask_hole_phys_vol;
 
   G4int counter = 0;
-
+  
   for (auto i=0; i<8; i++) {
-
     G4double xpos = -size_/2. + margin_ + i * pitch_;
-
     for (auto j=0; j<8; j++) {
-
+      if (triangular_ && (i + j >= 5)) continue;
       G4double ypos = -size_/2. + margin_ + j * pitch_;
-
+      
       G4ThreeVector sipm_position(xpos, ypos, zpos);
       sipm_positions_.push_back(sipm_position);
 
@@ -268,6 +306,8 @@ void NextHDDEMOSiPMBoard::Construct()
 
       counter++;
     }
+
+    
   }
 
   // VERTEX GENERATOR ////////////////////////////////////////////////
@@ -287,7 +327,7 @@ void NextHDDEMOSiPMBoard::Construct()
   mask_wls_logic_vol     ->SetVisAttributes(G4VisAttributes::GetInvisible());
   mask_wls_hole_logic_vol->SetVisAttributes(G4VisAttributes::GetInvisible());
   wall_wls_logic_vol     ->SetVisAttributes(G4VisAttributes::GetInvisible());
-  board_logic_vol ->SetVisAttributes(G4VisAttributes::GetInvisible());
+  board_logic_vol ->SetVisAttributes(nexus::LightBlue());
 }
 
 

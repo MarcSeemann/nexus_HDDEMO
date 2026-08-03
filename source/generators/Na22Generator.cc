@@ -109,7 +109,7 @@ namespace nexus {
     gamma_dis->SetMass(mass);
     gamma_dis->SetCharge(charge);
     gamma_dis->SetPolarization(0.,0.,0.);
-    vertex->SetPrimary(gamma_dis);
+    // vertex->SetPrimary(gamma_dis);
 
 
     evt->AddPrimaryVertex(vertex);

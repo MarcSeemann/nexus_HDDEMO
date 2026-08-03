@@ -36,7 +36,7 @@ namespace nexus {
                 // common used variables in geomety components
                 gate_tracking_plane_distance_((26.1 + 0.1) * mm), // to be confirmed
                 gate_sapphire_wdw_distance_  ((1458.2 - 0.1) * mm),
-						    pressure_(15. * bar),
+						    pressure_(8.6 * bar),
 						    temperature_ (300 * kelvin),
 						    sc_yield_(25510. * 1/MeV),
                 e_lifetime_(1000. * ms),
@@ -48,7 +48,7 @@ namespace nexus {
 				  "Control commands of geometry NextHDDEMO.");
 
     G4GenericMessenger::Command& pressure_cmd =
-      msg_->DeclareProperty("pressure", pressure_, "Pressure of gasn.");
+      msg_->DeclareProperty("pressure", pressure_, "Pressure of gas.");
     pressure_cmd.SetUnitCategory("Pressure");
     pressure_cmd.SetParameterName("pressure", false);
     pressure_cmd.SetRange("pressure>0.");
@@ -124,10 +124,16 @@ namespace nexus {
 								       temperature_,
 								       sc_yield_,
                                                                        e_lifetime_));
-  }  else {
+  } else if (gas_ == "Ar") {
+    gas_mat = materials::GAr(pressure_, temperature_);
+    gas_mat->SetMaterialPropertiesTable(opticalprops::GAr(sc_yield_, e_lifetime_));
+
+  } else {
     G4Exception("[NextHDDEMOOpticalGeometry]", "Construct()", FatalException,
                 "Unknown kind of gas, valid options are: naturalXe, enrichedXe, depletedXe.");
   }
+
+  G4cout << "[NextHDDEMOOpticalGeometry] Using gas: " << gas_ << " at pressure " << pressure_/bar << " bar" << G4endl;
 
   G4double gas_size = lab_size - 1.*cm;
   G4Box* gas_solid = new G4Box("GAS", gas_size/2., gas_size/2., gas_size/2.);

@@ -26,11 +26,20 @@ G4double GXeDensity(G4double pressure)
 
   G4double density;
 
-  const G4int n_pressures = 6;
+  const G4int n_pressures = 15;
   G4double data[n_pressures][2] = {{  1.0 * bar,   5.419 * kg/m3},
                                    {  5.0 * bar,  27.721 * kg/m3},
+                                   {  8.6 * bar,  48.917 * kg/m3},
+                                   {  8.7 * bar,  49.510 * kg/m3},
+                                   {  9.6 * bar,  54.805 * kg/m3},
                                    { 10.0 * bar,  57.160 * kg/m3},
+                                   { 10.6 * bar,  60.895 * kg/m3},
+                                   { 11.6 * bar,  67.121 * kg/m3},
+                                   { 12.6 * bar,  73.347 * kg/m3},
                                    { 13.5 * bar,  78.949 * kg/m3},
+                                   { 13.6 * bar,  79.619 * kg/m3},
+                                   { 14.6 * bar,  86.321 * kg/m3},
+                                   { 15.6 * bar,  93.023 * kg/m3},
                                    { 20.0 * bar, 122.510 * kg/m3},
                                    { 30.0 * bar, 199.920 * kg/m3}};
   G4bool found = false;

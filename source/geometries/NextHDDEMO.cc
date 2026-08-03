@@ -118,6 +118,7 @@ namespace nexus {
     }
     lab_logic_->SetVisAttributes(G4VisAttributes::GetInvisible());
 
+
     // Set this volume as the wrapper for the whole geometry
     // (i.e., this is the volume that will be placed in the world)
     this->SetLogicalVolume(lab_logic_);
@@ -246,7 +247,6 @@ namespace nexus {
              (region == "RING_HOLDER")) {
       vertex = inner_elements_->GenerateVertex(region);
     }
-
     else if (region == "AD_HOC") {
       // AD_HOC does not need to be shifted because it is passed by the user
       vertex = specific_vertex_;

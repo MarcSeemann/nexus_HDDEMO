@@ -56,6 +56,7 @@ namespace nexus {
     G4bool visibility_;
 
     NextHDDEMOSiPMBoard* sipm_board_geom_;
+    NextHDDEMOSiPMBoard* sipm_board_triangle_geom_;
 
     CylinderPointSampler2020* copper_plate_gen_;
     BoxPointSampler* plug_gen_;

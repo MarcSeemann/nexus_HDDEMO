@@ -17,6 +17,8 @@
 #include <G4GenericMessenger.hh>
 #include <G4Tubs.hh>
 #include <G4Box.hh>
+#include <G4ExtrudedSolid.hh>
+#include <G4TwoVector.hh>
 #include <G4LogicalVolume.hh>
 #include <G4PVPlacement.hh>
 #include <G4NistManager.hh>
@@ -30,9 +32,9 @@ using namespace nexus;
 
 NextHDDEMOTrackingPlane::NextHDDEMOTrackingPlane():
   GeometryBase(),
-  copper_plate_diameter_  ( 320.*mm),
-  copper_plate_thickness_ ( 145.*mm),
-  distance_board_board_   (   1.*mm),
+  copper_plate_diameter_  ( 424.*mm), // CILINDRO MARRÓN DEL FINAL 320
+  copper_plate_thickness_ ( 111.5*mm), // 145
+  distance_board_board_   (   1.* mm),
 
   visibility_(true),
   sipm_board_geom_(new NextHDDEMOSiPMBoard),
@@ -94,6 +96,39 @@ void NextHDDEMOTrackingPlane::Construct()
 
   copper_plate_gen_ = new CylinderPointSampler2020(copper_plate_phys);
 
+// EMPTY TRIANGULAR BOARD (prueba) ///////////////////////////////////
+  {
+    sipm_board_triangle_geom_ = new NextHDDEMOSiPMBoard();
+    sipm_board_triangle_geom_->SetTriangular(true);
+    sipm_board_triangle_geom_->SetMotherPhysicalVolume(mpv_);
+    sipm_board_triangle_geom_->Construct();
+    G4LogicalVolume* sipm_board_triangle_logic = sipm_board_triangle_geom_->GetLogicalVolume();
+
+    G4double triangle_zpos = GetELzCoord() - gate_tp_dist_ + sipm_board_triangle_geom_->GetThickness()/2.;
+    G4double cell_size     = sipm_board_geom_->GetSize() + distance_board_board_;
+    G4double corner_offset = 1.5 * cell_size;
+
+    G4double corner_x[4]       = { +corner_offset, -corner_offset, -corner_offset, +corner_offset };
+    G4double corner_y[4]       = { +corner_offset, +corner_offset, -corner_offset, -corner_offset };
+    G4double corner_rot_deg[4] = {        0.,             90.,            180.,            270.  };
+
+    for (G4int i=0; i<4; i++) {
+      G4RotationMatrix* rot = new G4RotationMatrix();
+      rot->rotateZ(-corner_rot_deg[i] * deg);
+      new G4PVPlacement(rot, G4ThreeVector(corner_x[i], corner_y[i], triangle_zpos),
+                        sipm_board_triangle_logic, "SIPM_BOARD_TRIANGLE", mpv_->GetLogicalVolume(),
+                        false, i, false);
+    }
+
+    if (visibility_) {
+      G4VisAttributes light_blue = LightBlue();
+      light_blue.SetForceSolid(false); //si lo pones true no se ven los SiPMs
+      sipm_board_triangle_logic->SetVisAttributes(light_blue);
+    } else {
+      sipm_board_triangle_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+    }
+  }
+
 
   // SIPM BOARDS /////////////////////////////////////////////////////
 
@@ -109,11 +144,15 @@ void NextHDDEMOTrackingPlane::Construct()
 
   // Column on the far left has 4 boards.
   // It is located 1.5 boards away from the center.
-  PlaceSiPMBoardColumns(4, -1.5, zpos, board_index, sipm_board_logic);
+  /* PlaceSiPMBoardColumns(Cantidad vertical de boards, 
+                           posición x y (xpos, ypos) del centro de la columna en unidades de columnas, 
+                           posición z, no sé, no sé)
+  */
+  PlaceSiPMBoardColumns(2, -1.5, zpos, board_index, sipm_board_logic);
 
   // Second column from the left has 4 boards.
   // It is located 0.5 boards away from the center.
-  PlaceSiPMBoardColumns(4, -0.5, zpos, board_index, sipm_board_logic);
+  PlaceSiPMBoardColumns(4, -0.5, zpos, board_index, sipm_board_logic); 
 
   // Second column from the right has 4 boards.
   // It is located 0.5 boards away from the center.
@@ -121,7 +160,7 @@ void NextHDDEMOTrackingPlane::Construct()
 
   // Column on the far right has 4 boards.
   // It is located 1.5 boards away from the center.
-  PlaceSiPMBoardColumns(4, +1.5, zpos, board_index, sipm_board_logic);
+  PlaceSiPMBoardColumns(2, +1.5, zpos, board_index, sipm_board_logic);
 
 
   ///// DB PLUGS
@@ -152,6 +191,7 @@ void NextHDDEMOTrackingPlane::Construct()
     G4VisAttributes copper_brown = CopperBrownAlpha();
     copper_brown.SetForceSolid(true);
     copper_plate_logic->SetVisAttributes(copper_brown);
+    // copper_plate_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
   } else {
     copper_plate_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
     sipm_board_logic  ->SetVisAttributes(G4VisAttributes::GetInvisible());

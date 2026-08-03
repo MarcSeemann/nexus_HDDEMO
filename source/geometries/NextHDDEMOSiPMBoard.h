@@ -43,6 +43,7 @@ namespace nexus {
     G4double GetThickness() const;
 
     const std::vector<G4ThreeVector>& GetSiPMPositions() const;
+    void SetTriangular(G4bool t) { triangular_ = t; }
 
   private:
     G4GenericMessenger* msg_;
@@ -51,6 +52,7 @@ namespace nexus {
     G4double time_binning_;
     std::vector<G4ThreeVector> sipm_positions_;
     G4bool   visibility_, sipm_visibility_;
+    G4bool triangular_;
     G4VPhysicalVolume*  mpv_;
     BoxPointSampler*    vtxgen_;
     NextHDDEMOSiPM* sipm_;

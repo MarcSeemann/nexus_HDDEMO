@@ -60,6 +60,7 @@ namespace nexus {
     // const G4double cathode_int_diam_, cathode_ext_diam_, cathode_thickn_, grid_thickn_;
     const G4double cathode_ext_diam_, cathode_thickn_, cathode_hole_diam_, cathode_hole_dist_, grid_thickn_;
     const G4double teflon_drift_length_, teflon_total_length_, teflon_thickn_;
+    const G4double teflon_drift_length_2_, teflon_total_length_2_, teflon_thickn_2_;
     // const G4int n_panels_;
     const G4double el_gap_length_;
     const G4double gate_teflon_dist_, gate_ext_diam_, gate_int_diam_, gate_ring_thickn_;
@@ -71,7 +72,10 @@ namespace nexus {
 
     // Active logic volume
     G4LogicalVolume* active_logic_; // so I can use it for multiple methods and make it the FiberBarrel's mother volume
-
+    
+    // 2nd teflon panel logic volume
+    G4LogicalVolume* teflon_panel_2_logic;
+    
     // Fiber Barrel
     //// fibers
     GenericWLSFiber* fiber_; // WSL fibers (Y11 or B2)
@@ -89,6 +93,8 @@ namespace nexus {
     G4bool panels_visibility_;
     G4bool fibers_visibility_;
     G4double panel_width_;
+    G4double teflon_cathode_gap;
+    G4double green_piece_zpos_2;
     G4double panel_thickness_;
     G4double panel_length_;
     //// relative z-positions to the panels (reference z_p position)
@@ -121,7 +127,10 @@ namespace nexus {
 
     G4double active_length_, buffer_length_;
     G4double teflon_buffer_length_;
-    G4double teflon_drift_zpos_,teflon_buffer_zpos_;
+    G4double teflon_drift_zpos_, teflon_buffer_zpos_;
+    G4double teflon_x_2_;
+    G4double teflon_y_2_;
+    G4double teflon_drift_zpos_2_, teflon_buffer_zpos_2; 
     G4double holder_r_;
     G4double active_zpos_, cathode_zpos_, gate_zpos_, el_gap_zpos_, anode_zpos_;
     G4double gate_grid_zpos_, anode_grid_zpos_;

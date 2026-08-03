@@ -13,6 +13,7 @@
 #include "OpticalMaterialProperties.h"
 #include "UniformElectricDriftField.h"
 #include "XenonProperties.h"
+#include "ArgonGasProperties.h" 
 #include "CylinderPointSampler2020.h"
 #include "SegmentPointSampler.h"
 
@@ -48,34 +49,40 @@ NextHDDEMOFieldCage::NextHDDEMOFieldCage():
   // Dimensions
   active_diam_         (356. * mm), // distance between the external corners of two opposite panels
 
-  cathode_ext_diam_    (389.* mm),
+  cathode_ext_diam_    (356.* mm),
   cathode_thickn_      (1.  * mm),
   cathode_hole_diam_   (5.  * mm),
-  cathode_hole_dist_   (55. * mm),
+  cathode_hole_dist_   (55. * mm), 
   // Caution: updating grid-thickn_ will require updating gate-tp and gate-sapphire-window distances
   grid_thickn_         (0.2  * mm),
 
-  teflon_drift_length_ (260.*mm), //distance from the gate to the beginning of the cathode volume.
-  teflon_total_length_ (270. * mm),
+  teflon_drift_length_ (240.* mm), //distance from the gate to the beginning of the cathode volume. 260
+  teflon_total_length_ (250. * mm), // ni idea, pero > que teflon_drift_length_ 270
   teflon_thickn_       (5. * mm),
+
+  teflon_drift_length_2_ (240.* mm), //distance from the gate to the beginning of the cathode volume. 260
+  teflon_total_length_2_ (250. * mm), // ni idea, pero > que teflon_drift_length_ 270
+  teflon_thickn_2_       (5. * mm),
+
 
   el_gap_length_ (10. * mm),
 
   gate_teflon_dist_ (10.2 * mm - grid_thickn_), //distance from gate-grid to teflon
-  gate_ext_diam_    (389. * mm), //preliminary
-  gate_int_diam_    (365. * mm), //preliminary
+  gate_ext_diam_    (354. * mm), //preliminary 389 /ANILLOS GRISES DEL FONDO
+  gate_int_diam_    (316. * mm), //preliminary 365
   gate_ring_thickn_ (9.9   * mm), // maximum possible value to avoid overlap with sipm board masks
 
   // external to teflon (hdpe + rings + holders)
-  hdpe_tube_int_diam_ (500. * mm), //NO HAY YET
-  hdpe_tube_ext_diam_ (510 * mm),
-  hdpe_length_        (300. * mm),
+  hdpe_tube_int_diam_ (428. * mm), // TUBO GRIS QUE RODEA TODO 500
+  hdpe_tube_ext_diam_ (444 * mm), // 510
+  hdpe_length_        (820.8 * mm), // 300
 
-  ring_ext_diam_ (376. * mm),
+  ring_ext_diam_ (376. * mm), // ANILLOS DE COBRE QUE RODEAN LA CHAMBER
   ring_int_diam_ (370. * mm),
   ring_thickn_   (10. * mm),
   drift_ring_dist_  (15. * mm),
-  buffer_ring_dist_ (0. * mm),
+  buffer_ring_dist_ (0. * mm), // NO HAY BUFFER EN NEXTDEMO
+  // NO SÉ QUÉ SON LOS 3 SIGUIENTES
   holder_x_         (60. * mm),  //x dimension of the holders
   holder_long_y_    (9.  * mm),  // y dim of the base of the ring holders
   holder_short_y_   (33.15 * mm),// y dim of the pieces added over the base of the ring holders
@@ -102,10 +109,11 @@ NextHDDEMOFieldCage::NextHDDEMOFieldCage():
   // Fiber Barrel
   fiber_type_ ("Y11"), // type of fibers attached to the teflon panels (Y11 or B2)
   sensor_type_ ("PERFECT"),
-  fiber_diameter_(1 * mm),
-  panel_width_ (60. * mm),
+  fiber_diameter_(1. * mm), 
+  panel_width_ (59.9 * mm), //60
+  teflon_cathode_gap (6.2 * mm),
   sensor_visibility_ (true),
-  panels_visibility_ (false),
+  panels_visibility_ (true),
   fibers_visibility_ (true),
   coated_(true)
 {
@@ -239,6 +247,7 @@ void NextHDDEMOFieldCage::Construct()
   sens_z = 1. * mm;
   fiber_end_z = 0.1 * mm;
   fiber_length = panel_length_ - (sens_z + fiber_end_z);
+  // fiber_length = 400 * mm;
   // ****************************************************************************
 
   /// Calculate lengths of active and buffer regions
@@ -272,13 +281,35 @@ void NextHDDEMOFieldCage::Construct()
   // FIBER BARREL ******************************************************
   /// GEOMETRY PARAMETERS /////////////////////////////////////////////
 
-  z_p     = 0; // z-position of the panels wrt active volume
-  z_f     = z_p + fiber_length/2. + sens_z - panel_length_/2.; // z-pos for the fibers
+  z_p     = (0 * mm); // z-position of the panels wrt active volume
+  teflon_x_2_ = 0. * mm; // x position of the second teflon panels
+  // teflon_drift_length_ + 2.*teflon_cathode_gap + cathode_thickn_; // x position of the second teflon panels
+  teflon_y_2_ = (0. * mm); // y position of the second teflon panels
+  {
+    G4GenericMessenger::Command& teflon_x_2_cmd =
+    msg_->DeclareProperty("teflon_x_2", teflon_x_2_, "Posicion X del segundo panel de teflon");
+  teflon_x_2_cmd.SetUnitCategory("Length");
+  teflon_x_2_cmd.SetParameterName("teflon_x_2", false);
+
+  G4GenericMessenger::Command& teflon_y_2_cmd =
+    msg_->DeclareProperty("teflon_y_2", teflon_y_2_, "Posicion Y del segundo panel de teflon");
+  teflon_y_2_cmd.SetUnitCategory("Length");
+  teflon_y_2_cmd.SetParameterName("teflon_y_2", false);
+
+  G4GenericMessenger::Command& teflon_z_2_cmd =
+    msg_->DeclareProperty("teflon_z_2", teflon_drift_zpos_2_, "Posicion Z del segundo anillo de paneles de teflon");
+  teflon_z_2_cmd.SetUnitCategory("Length");
+  teflon_z_2_cmd.SetParameterName("teflon_z_2", false);
+
+  }
+  // z_f     = z_p + fiber_length/2. + sens_z - panel_length_/2.; // z-pos for the fibers
+  z_f = z_p + panel_length_/2. - fiber_length/2.; // z-pos for the fibers
   z_fend  = z_f + (fiber_length + fiber_end_z)/2.; // z-pos for the fibers' Al ends
   z_s     = z_f - (fiber_length + sens_z)/2.; // z-pos for the sensors
 
   //// Teflon panels distance to the center
   h = std::sqrt((active_diam_/2.)*(active_diam_/2.)  - (panel_width_/2.)*(panel_width_/2.)) - panel_thickness_/2.;
+  // std::cout << "h = " << h << std::endl;
 
   //// Teflon panels angular separation
   dif_theta = 2*std::atan(panel_width_/(2.*h));
@@ -287,6 +318,7 @@ void NextHDDEMOFieldCage::Construct()
 
   n_fibers = floor(panel_width_ / fiber_diameter_); // number of fibers per panel
   dl_fib = panel_width_/n_fibers; // distance between fibers
+  
 
   G4cout << "[FiberBarrel] Using " << n_fibers << " fibers per panel"<< G4endl;
 
@@ -302,7 +334,7 @@ void NextHDDEMOFieldCage::Construct()
   dif_theta = ( 2 * M_PI) / n_panels; // re-calculate angular difference
   h = (panel_width_/2.)/(std::tan(dif_theta/2.)) + fiber_diameter_ + panel_thickness_/2.; // re-calculate distance to the center
   G4cout << "[FiberBarrel] Using " << n_panels << " panels" << G4endl;
-
+  
   //// Fibers/sensors/aluminium distance to the center
   hh = h - (fiber_diameter_/2. + panel_thickness_/2.);
   G4cout << "[FiberBarrel] Panels diameter: " << 2*h << " [mm]" << G4endl;
@@ -330,6 +362,10 @@ void NextHDDEMOFieldCage::DefineMaterials()
   gas_         = mother_logic_->GetMaterial();
   pressure_    = gas_->GetPressure();
   temperature_ = gas_->GetTemperature();
+
+  if (!gas_->GetMaterialPropertiesTable()) {
+    gas_->SetMaterialPropertiesTable(new G4MaterialPropertiesTable());
+  }
 
   /// High density polyethylene for the field cage
   hdpe_ = materials::HDPE();
@@ -367,7 +403,7 @@ void NextHDDEMOFieldCage::BuildActive()
 
   /// Position of z planes
   G4double zplane[2] = {- panel_length_/2 - overlap_,
-                        panel_length_/2.};
+                        panel_length_/2. + fiber_end_z + overlap_};
 
   /// Inner radius
   G4double rinner[2] = {0., 0.};
@@ -543,10 +579,11 @@ void NextHDDEMOFieldCage::BuildCathode()
     new G4OpticalSurface("TEFLON_OPSURF", unified, ground, dielectric_metal);
   opsur_teflon->SetMaterialPropertiesTable(opticalprops::PTFE());
 
+
   new G4LogicalSkinSurface("CATHODE_TEFLON_PLATE_OPSURF", cathode_teflon_cap_logic, opsur_teflon);
 
-  cathode_teflon_cap_logic->SetVisAttributes(nexus::White());
-
+  // cathode_teflon_cap_logic->SetVisAttributes(nexus::White());
+  cathode_teflon_cap_logic->SetVisAttributes(G4VisAttributes::GetInvisible()); // La estrella blanca del inicio
    // COATING FOR THE TEFLON CAP /////////////////////////////////////////////
   G4double coating_thickn_ = 5. * micrometer;
 
@@ -595,8 +632,8 @@ void NextHDDEMOFieldCage::BuildCathode()
   new G4LogicalBorderSurface("tpb_teflon_surf", tpb_coating_phys, cathode_teflon_phys, tpb_teflon_surf);
   new G4LogicalBorderSurface("tpb_teflon_surf", cathode_teflon_phys, tpb_coating_phys, gas_tpb_teflon_surf);
                     
-  // coating_logic_vol->SetVisAttributes(G4VisAttributes::GetInvisible());
-  coating_logic_vol->SetVisAttributes(nexus::Yellow());
+  coating_logic_vol->SetVisAttributes(G4VisAttributes::GetInvisible());
+  // coating_logic_vol->SetVisAttributes(nexus::Yellow());
 
 
 
@@ -612,10 +649,10 @@ void NextHDDEMOFieldCage::BuildCathode()
     G4VisAttributes cathode_col = nexus::DarkGrey();
     cathode_col.SetForceSolid(true);
     cathode_logic->SetVisAttributes(cathode_col);
+    // cathode_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
   } else {
     G4VisAttributes cathode_col = nexus::DarkGrey();
     cathode_col.SetForceSolid(true);
-    // cathode_logic->SetVisAttributes(cathode_col);
     cathode_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
   }
 
@@ -626,6 +663,8 @@ void NextHDDEMOFieldCage::BuildCathode()
   }
 
 }
+
+
 
 // NOT USED! Here only for reference
 void NextHDDEMOFieldCage::BuildBuffer()
@@ -685,8 +724,8 @@ void NextHDDEMOFieldCage::BuildBuffer()
                                             G4ThreeVector(0., 0., xenon_zpos));
 
   /// Visibilities
-  // buffer_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
-  buffer_logic->SetVisAttributes(nexus::YellowAlpha());
+  buffer_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+  // buffer_logic->SetVisAttributes(nexus::YellowAlpha());
 
   /// Verbosity
   if (verbosity_) {
@@ -741,7 +780,11 @@ void NextHDDEMOFieldCage::BuildELRegion()
     el_field->SetDriftVelocity(2.5 * mm/microsecond);
     el_field->SetTransverseDiffusion(ELtransv_diff_);
     el_field->SetLongitudinalDiffusion(ELlong_diff_);
-    el_field->SetLightYield(XenonELLightYield(ELelectric_field_, pressure_));
+    if (gas_->GetName() == "Ar" /* o el criterio que uses */) {
+      el_field->SetLightYield(ArgonELLightYield(ELelectric_field_, pressure_));
+    } else {
+      el_field->SetLightYield(XenonELLightYield(ELelectric_field_, pressure_));
+    }
     // el_field->SetLightYield(1);
     G4Region* el_region = new G4Region("EL_REGION");
     el_region->SetUserInformation(el_field);
@@ -803,19 +846,21 @@ void NextHDDEMOFieldCage::BuildELRegion()
   if (visibility_) {
     G4VisAttributes light_blue = nexus::LightBlue();
     el_gap_logic->SetVisAttributes(light_blue);
-    diel_grid_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+    // el_gap_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+    
+    // diel_grid_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+    diel_grid_logic->SetVisAttributes(light_blue);
   } else {
     el_gap_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
     diel_grid_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
   }
-  G4VisAttributes color = nexus::Lilla();
-  el_gap_logic->SetVisAttributes(color);
 
   G4VisAttributes grey = nexus::DarkGrey();
   grey.SetForceSolid(true);
   gate_logic->SetVisAttributes(grey);
   // gate_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
   anode_logic->SetVisAttributes(grey);
+  // anode_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
 
   /// Verbosity
   if (verbosity_) {
@@ -871,9 +916,16 @@ void NextHDDEMOFieldCage::BuildFiberBarrel()
 
    new G4LogicalSkinSurface("TEFLON_PANEL_OPSURF", teflon_panel_logic, opsur_teflon);
 
-   teflon_panel_logic->SetVisAttributes(nexus::White());
-   if (panels_visibility_ == false){
-     teflon_panel_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+   if (panels_visibility_)
+   {
+    G4VisAttributes red_color = nexus::Red();
+    red_color.SetForceSolid(true); 
+    teflon_panel_logic->SetVisAttributes(red_color);
+    // teflon_panel_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+   }
+   else
+   {
+    teflon_panel_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
    };
 
 
@@ -1000,7 +1052,9 @@ void NextHDDEMOFieldCage::BuildFiberBarrel()
       photo_sensor_ ->Construct();
 
       G4LogicalVolume* photo_sensor_logic  = photo_sensor_ ->GetLogicalVolume();
-
+      G4VisAttributes* blue = new G4VisAttributes(nexus::Blue());
+      blue->SetForceSolid(true);
+      photo_sensor_logic->SetVisAttributes(blue);
 
     // ALUMINIZED ENDCAP//////////////////////////////////////////////////
 
@@ -1015,7 +1069,7 @@ void NextHDDEMOFieldCage::BuildFiberBarrel()
 
     new G4LogicalSkinSurface("POLISHED_AL_OPSURF", fiber_end_logic_vol, opsur_al);
 
-    fiber_end_logic_vol  ->SetVisAttributes(nexus::Blue());
+    fiber_end_logic_vol  ->SetVisAttributes(G4VisAttributes::GetInvisible());
 
 
     // fiber ////////////////////////////////////////////////////
@@ -1031,10 +1085,15 @@ void NextHDDEMOFieldCage::BuildFiberBarrel()
     fiber_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
     
     if (fibers_visibility_){
-      if (fiber_type_ == "Y11")
-        fiber_logic->SetVisAttributes(nexus::LightGreenAlpha());
-      else if (fiber_type_ == "B2")
+      if (fiber_type_ == "Y11"){
+        G4VisAttributes light_green = nexus::LightGreenAlpha();
+        light_green.SetForceSolid(true);
+        fiber_logic->SetVisAttributes(light_green);
+        // fiber_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+      }
+      else if (fiber_type_ == "B2"){
         fiber_logic->SetVisAttributes(nexus::LightBlueAlpha());
+      }
     }
 
 
@@ -1106,6 +1165,57 @@ void NextHDDEMOFieldCage::BuildFiberBarrel()
     }
 
    }
+// SECOND PANEL BARREL (beyond cathode) ////////////////////////////
+G4double panel_length_2  = teflon_drift_length_2_;   // misma longitud o la que quieras
+G4double panel_thickness_2 = teflon_thickn_2_;
+
+G4Box* teflon_panel_2 =
+  new G4Box("TEFLON_PANEL_2", panel_width_/2., panel_length_2/2., panel_thickness_2/2.);
+
+teflon_panel_2_logic =
+  new G4LogicalVolume(teflon_panel_2, teflon_, "TEFLON_PANEL_2");
+
+// Misma superficie óptica que los paneles del drift
+new G4LogicalSkinSurface("TEFLON_PANEL_2_OPSURF", teflon_panel_2_logic, opsur_teflon);
+
+// Misma visibilidad que los originales
+if (panels_visibility_)
+  {
+  G4VisAttributes red_color = nexus::Red();
+  red_color.SetForceSolid(true); 
+  teflon_panel_2_logic->SetVisAttributes(red_color);
+  // teflon_panel_2_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+  }
+else
+  {
+  teflon_panel_2_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+  };
+// Posición z: justo después del cátodo
+G4double gap_before_cathode =
+    (cathode_zpos_ - cathode_thickn_/2.) -
+    (active_zpos_ + panel_length_/2.);
+
+G4double z_p2 = cathode_zpos_ + 3. * cathode_thickn_/2. + teflon_cathode_gap + teflon_drift_length_/2.; // pos z del segundo panel de teflón, justo después del cátodo y de la pieza verde de comprobación
+
+
+// Placement: mismo loop angular que los paneles del drift
+for (G4int itheta = 0; itheta < n_panels; itheta++) {
+  G4double theta = theta0 + dif_theta * itheta;
+  G4double x = h * std::cos(theta) * mm;
+  G4double y = h * std::sin(theta) * mm;
+  G4double phi = pi/2. + std::atan2(y, x);
+  std::string label = std::to_string(itheta);
+
+  G4RotationMatrix* panel_rot_2 = new G4RotationMatrix();
+  panel_rot_2->rotateX(pi/2.);
+  panel_rot_2->rotateY(phi);
+
+  new G4PVPlacement(panel_rot_2, G4ThreeVector(x, y, z_p2),
+                    teflon_panel_2_logic, "TEFLON_PANEL_2_" + label, mother_logic_,
+                    false, 0, false);
+
+}
+
 
 }
 
@@ -1211,8 +1321,10 @@ void NextHDDEMOFieldCage::BuildLightTube()
   if (visibility_) {
     G4VisAttributes light_yellow = nexus::YellowAlpha();
     light_yellow.SetForceSolid(true);
-    teflon_drift_logic->SetVisAttributes(light_yellow);
-    teflon_buffer_logic->SetVisAttributes(light_yellow);
+    // teflon_drift_logic->SetVisAttributes(light_yellow);
+    teflon_drift_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+    // teflon_buffer_logic->SetVisAttributes(light_yellow);
+    teflon_buffer_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
     tpb_drift_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
     tpb_buffer_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
   }
@@ -1230,7 +1342,8 @@ void NextHDDEMOFieldCage::BuildLightTube()
 void NextHDDEMOFieldCage::BuildFieldCage()
 {
   // HDPE cylinder.
-  G4double hdpe_tube_z_pos = teflon_buffer_zpos_ - (hdpe_length_ - teflon_buffer_length_)/2.;
+  //G4double hdpe_tube_z_pos = teflon_buffer_zpos_ - (hdpe_length_ - teflon_buffer_length_)/2.;
+  G4double hdpe_tube_z_pos = cathode_zpos_ ; // THIS POSITIONING IS *NOT* BLUEPRINT ACCURATE
 
   G4Tubs* hdpe_tube_solid =
     new G4Tubs("HDPE_TUBE", hdpe_tube_int_diam_/2., hdpe_tube_ext_diam_/2.,
@@ -1417,14 +1530,16 @@ void NextHDDEMOFieldCage::BuildFieldCage()
     G4VisAttributes ring_col = nexus::CopperBrown();
     ring_col.SetForceSolid(true);
     ring_logic->SetVisAttributes(ring_col);
+    // ring_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
     G4VisAttributes hdpe_col =nexus::WhiteAlpha();
     hdpe_col.SetForceSolid(true);
-    hdpe_tube_logic->SetVisAttributes(hdpe_col);
+    hdpe_tube_logic->SetVisAttributes(hdpe_col); // COLOR DEL TUBO MÁS EXTERIOR
+    // hdpe_tube_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
     G4VisAttributes hold_col = nexus::LightGrey();
     hold_col.SetForceSolid(true);
-    act_holder_logic->SetVisAttributes(hold_col);
-    buff_holder_logic->SetVisAttributes(hold_col);
-    cathode_holder_logic->SetVisAttributes(hold_col);
+    act_holder_logic->SetVisAttributes(hold_col); // hold_col
+    buff_holder_logic->SetVisAttributes(hold_col); // hold_col
+    cathode_holder_logic->SetVisAttributes(hold_col); // hold_col
   } else {
     ring_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
     hdpe_tube_logic->SetVisAttributes(G4VisAttributes::GetInvisible());

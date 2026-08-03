@@ -210,11 +210,12 @@ void NextHDDEMOSiPM::Construct()
   // VISIBILITY ////////////////////////////////////////////
 
   if (visibility_) {
+    // sipm_logic_vol  ->SetVisAttributes(nexus::Red());
     sipm_logic_vol  ->SetVisAttributes(G4VisAttributes::GetInvisible());
     window_logic_vol->SetVisAttributes(G4VisAttributes::GetInvisible());
-    G4VisAttributes red = Red();
-    red.SetForceSolid(true);
-    sens_logic_vol->SetVisAttributes(red);
+    G4VisAttributes green = new G4VisAttributes(G4Colour(0.0, 1.0, 0.0)); // RGB: 100% Verde
+    green.SetForceSolid(true);
+    sens_logic_vol->SetVisAttributes(green);
   }
   else {
     sipm_logic_vol  ->SetVisAttributes(G4VisAttributes::GetInvisible());

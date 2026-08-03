@@ -80,19 +80,19 @@ namespace nexus {
 
     if (step.GetStepLength() > 0) {
 
-      // Simulate attachment by impurities
-      
-      G4MaterialPropertiesTable* mpt = 
+      // Simulate attachment by impurities. If the material has no
+      // attachment property, assume no attachment silently.
+      G4double attach = 0.;
+      G4MaterialPropertiesTable* mpt =
         track.GetMaterial()->GetMaterialPropertiesTable();
 
-      if (!mpt || !(mpt->ConstPropertyExists("ATTACHMENT"))) { 
-        G4Exception("[IonizationDrift]", "AlongStepDoIt()", JustWarning,
-          "No material properties table found. Assuming no attachment.");
+      if (mpt && mpt->ConstPropertyExists("ATTACHMENT")) {
+        attach = mpt->GetConstProperty("ATTACHMENT");
       }
-      else {
-        const G4double attach = mpt->GetConstProperty("ATTACHMENT");
+
+      if (attach > 0.) {
         G4double rnd = -attach * log(G4UniformRand());
-        if (xyzt_.t() > rnd) 
+        if (xyzt_.t() > rnd)
           ParticleChange_->ProposeTrackStatus(fStopAndKill);
       }
 

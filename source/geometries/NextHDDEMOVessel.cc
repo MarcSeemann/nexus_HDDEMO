@@ -64,7 +64,7 @@ namespace nexus {
     // Vessel gas
     sc_yield_(16670. * 1/MeV),
     e_lifetime_(1000. * ms),
-    pressure_   (13.5 * bar),
+    pressure_   (6.8 * bar),
     temperature_(293. * kelvin),
     // Visibility
     visibility_(0),
@@ -263,12 +263,20 @@ namespace nexus {
     } else if  (gas_ == "XeHe") {
       vessel_gas_mat = materials::GXeHe(pressure_, 300. * kelvin,
 					    xe_perc_, helium_mass_num_);
-    } else {
+    } else if (gas_ == "Ar") {
+      vessel_gas_mat = materials::GAr(pressure_, temperature_); 
+    }else {
       G4Exception("[NextHDDEMOVessel]", "Construct()", FatalException,
 		  "Unknown kind of xenon, valid options are: natural, enriched, depleted, or XeHe.");
     }
 
-    vessel_gas_mat->SetMaterialPropertiesTable(opticalprops::GXe(pressure_, temperature_, sc_yield_, e_lifetime_));
+    G4cout << "[NextHDDEMOVessel] Using gas: " << gas_ << " at pressure " << pressure_/bar << " bar" << G4endl;
+
+    if (gas_ == "Ar") {
+      vessel_gas_mat->SetMaterialPropertiesTable(opticalprops::GAr(sc_yield_, e_lifetime_));
+    } else {
+      vessel_gas_mat->SetMaterialPropertiesTable(opticalprops::GXe(pressure_, temperature_, sc_yield_, e_lifetime_));
+    }
 
     G4LogicalVolume* vessel_gas_logic = new G4LogicalVolume(vessel_gas_solid, vessel_gas_mat, "VESSEL_GAS");
     internal_logic_vol_ = vessel_gas_logic;
