@@ -15,7 +15,7 @@
 # /process/em/verbose 0
 
 ##### GEOMETRY #####
-/Geometry/NextHDDEMO/pressure 6.0 bar
+/Geometry/NextHDDEMO/pressure 6.6 bar
 /Geometry/NextHDDEMO/max_step_size 1. mm
 /Geometry/NextHDDEMO/field_cage_vis 1
 
@@ -52,7 +52,7 @@
 
 ##### GENERATOR #####
 
-# Posicion de la fuente de 22Na
+# Position of the 22Na source
 /Geometry/NextHDDEMO/specific_vertex 225. 0. 135. mm    
 /Generator/Na22Generator/region AD_HOC
 
@@ -94,4 +94,4 @@
 /nexus/random_seed -1
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file 6barXe
+/nexus/persistency/output_file simulation_output

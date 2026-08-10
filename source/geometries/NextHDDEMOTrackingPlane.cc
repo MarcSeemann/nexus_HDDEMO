@@ -32,7 +32,7 @@ using namespace nexus;
 
 NextHDDEMOTrackingPlane::NextHDDEMOTrackingPlane():
   GeometryBase(),
-  copper_plate_diameter_  ( 424.*mm), // CILINDRO MARRÓN DEL FINAL 320
+  copper_plate_diameter_  ( 424.*mm), // BROWN BIG CILINDER AFTER THE TRACKING PLANE 320 <- ORIGINAL VALUE FOR THIS PARAMETER
   copper_plate_thickness_ ( 111.5*mm), // 145
   distance_board_board_   (   1.* mm),
 
@@ -96,7 +96,7 @@ void NextHDDEMOTrackingPlane::Construct()
 
   copper_plate_gen_ = new CylinderPointSampler2020(copper_plate_phys);
 
-// EMPTY TRIANGULAR BOARD (prueba) ///////////////////////////////////
+// EMPTY TRIANGULAR BOARD ///////////////////////////////////
   {
     sipm_board_triangle_geom_ = new NextHDDEMOSiPMBoard();
     sipm_board_triangle_geom_->SetTriangular(true);
@@ -122,7 +122,7 @@ void NextHDDEMOTrackingPlane::Construct()
 
     if (visibility_) {
       G4VisAttributes light_blue = LightBlue();
-      light_blue.SetForceSolid(false); //si lo pones true no se ven los SiPMs
+      light_blue.SetForceSolid(false); // IF TRUE, YOU CAN'T SEE SiPMs
       sipm_board_triangle_logic->SetVisAttributes(light_blue);
     } else {
       sipm_board_triangle_logic->SetVisAttributes(G4VisAttributes::GetInvisible());

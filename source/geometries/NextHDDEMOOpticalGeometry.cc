@@ -130,7 +130,7 @@ namespace nexus {
 
   } else {
     G4Exception("[NextHDDEMOOpticalGeometry]", "Construct()", FatalException,
-                "Unknown kind of gas, valid options are: naturalXe, enrichedXe, depletedXe.");
+                "Unknown kind of gas, valid options are: naturalXe, enrichedXe, depletedXe, Ar.");
   }
 
   G4cout << "[NextHDDEMOOpticalGeometry] Using gas: " << gas_ << " at pressure " << pressure_/bar << " bar" << G4endl;

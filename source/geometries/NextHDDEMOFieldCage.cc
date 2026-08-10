@@ -56,33 +56,34 @@ NextHDDEMOFieldCage::NextHDDEMOFieldCage():
   // Caution: updating grid-thickn_ will require updating gate-tp and gate-sapphire-window distances
   grid_thickn_         (0.2  * mm),
 
-  teflon_drift_length_ (240.* mm), //distance from the gate to the beginning of the cathode volume. 260
-  teflon_total_length_ (250. * mm), // ni idea, pero > que teflon_drift_length_ 270
-  teflon_thickn_       (5. * mm),
+
+  teflon_drift_length_ (240.* mm), //distance from the gate to the beginning of the cathode volume. 260 <- Original value for this parameter
+  teflon_total_length_ (250. * mm), // No idea, but keep it > than teflon_drift_length_ 270
 
   teflon_drift_length_2_ (240.* mm), //distance from the gate to the beginning of the cathode volume. 260
-  teflon_total_length_2_ (250. * mm), // ni idea, pero > que teflon_drift_length_ 270
+  teflon_total_length_2_ (250. * mm), // No idea, but keep it > than teflon_drift_length_2 270
   teflon_thickn_2_       (5. * mm),
 
 
   el_gap_length_ (10. * mm),
 
   gate_teflon_dist_ (10.2 * mm - grid_thickn_), //distance from gate-grid to teflon
-  gate_ext_diam_    (354. * mm), //preliminary 389 /ANILLOS GRISES DEL FONDO
+  gate_ext_diam_    (354. * mm), //preliminary 389 /These are the 2 grey rings at the back
   gate_int_diam_    (316. * mm), //preliminary 365
   gate_ring_thickn_ (9.9   * mm), // maximum possible value to avoid overlap with sipm board masks
 
   // external to teflon (hdpe + rings + holders)
-  hdpe_tube_int_diam_ (428. * mm), // TUBO GRIS QUE RODEA TODO 500
+  hdpe_tube_int_diam_ (428. * mm), // Grey big tube that surrounds the chamber 500
   hdpe_tube_ext_diam_ (444 * mm), // 510
   hdpe_length_        (820.8 * mm), // 300
 
-  ring_ext_diam_ (376. * mm), // ANILLOS DE COBRE QUE RODEAN LA CHAMBER
+  ring_ext_diam_ (376. * mm), // Copper rings that surround the chamber
   ring_int_diam_ (370. * mm),
   ring_thickn_   (10. * mm),
   drift_ring_dist_  (15. * mm),
-  buffer_ring_dist_ (0. * mm), // NO HAY BUFFER EN NEXTDEMO
-  // NO SÉ QUÉ SON LOS 3 SIGUIENTES
+  buffer_ring_dist_ (0. * mm), // THERE ARE NO BUFFER IN NEXTDEMO, ALLEGEDLY
+  
+  // Don't know what these 3 are
   holder_x_         (60. * mm),  //x dimension of the holders
   holder_long_y_    (9.  * mm),  // y dim of the base of the ring holders
   holder_short_y_   (33.15 * mm),// y dim of the pieces added over the base of the ring holders
@@ -583,7 +584,7 @@ void NextHDDEMOFieldCage::BuildCathode()
   new G4LogicalSkinSurface("CATHODE_TEFLON_PLATE_OPSURF", cathode_teflon_cap_logic, opsur_teflon);
 
   // cathode_teflon_cap_logic->SetVisAttributes(nexus::White());
-  cathode_teflon_cap_logic->SetVisAttributes(G4VisAttributes::GetInvisible()); // La estrella blanca del inicio
+  cathode_teflon_cap_logic->SetVisAttributes(G4VisAttributes::GetInvisible()); // White coating for the Cathode (it look like a star)
    // COATING FOR THE TEFLON CAP /////////////////////////////////////////////
   G4double coating_thickn_ = 5. * micrometer;
 
@@ -1166,7 +1167,7 @@ void NextHDDEMOFieldCage::BuildFiberBarrel()
 
    }
 // SECOND PANEL BARREL (beyond cathode) ////////////////////////////
-G4double panel_length_2  = teflon_drift_length_2_;   // misma longitud o la que quieras
+G4double panel_length_2  = teflon_drift_length_2_;   
 G4double panel_thickness_2 = teflon_thickn_2_;
 
 G4Box* teflon_panel_2 =
@@ -1195,10 +1196,10 @@ G4double gap_before_cathode =
     (cathode_zpos_ - cathode_thickn_/2.) -
     (active_zpos_ + panel_length_/2.);
 
-G4double z_p2 = cathode_zpos_ + 3. * cathode_thickn_/2. + teflon_cathode_gap + teflon_drift_length_/2.; // pos z del segundo panel de teflón, justo después del cátodo y de la pieza verde de comprobación
+G4double z_p2 = cathode_zpos_ + 3. * cathode_thickn_/2. + teflon_cathode_gap + teflon_drift_length_/2.; // z position of the second panel barrel
 
 
-// Placement: mismo loop angular que los paneles del drift
+// Placement: same loop as for the first barrel
 for (G4int itheta = 0; itheta < n_panels; itheta++) {
   G4double theta = theta0 + dif_theta * itheta;
   G4double x = h * std::cos(theta) * mm;
@@ -1343,7 +1344,7 @@ void NextHDDEMOFieldCage::BuildFieldCage()
 {
   // HDPE cylinder.
   //G4double hdpe_tube_z_pos = teflon_buffer_zpos_ - (hdpe_length_ - teflon_buffer_length_)/2.;
-  G4double hdpe_tube_z_pos = cathode_zpos_ ; // THIS POSITIONING IS *NOT* BLUEPRINT ACCURATE
+  G4double hdpe_tube_z_pos = cathode_zpos_ ; // THIS POSITIONING IS *NOT* THAT OF THE BLUEPRINT, ITS A PLACEHOLDER 
 
   G4Tubs* hdpe_tube_solid =
     new G4Tubs("HDPE_TUBE", hdpe_tube_int_diam_/2., hdpe_tube_ext_diam_/2.,
@@ -1533,7 +1534,7 @@ void NextHDDEMOFieldCage::BuildFieldCage()
     // ring_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
     G4VisAttributes hdpe_col =nexus::WhiteAlpha();
     hdpe_col.SetForceSolid(true);
-    hdpe_tube_logic->SetVisAttributes(hdpe_col); // COLOR DEL TUBO MÁS EXTERIOR
+    hdpe_tube_logic->SetVisAttributes(hdpe_col); // COLOUR OF THE BIG GREY TUBE
     // hdpe_tube_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
     G4VisAttributes hold_col = nexus::LightGrey();
     hold_col.SetForceSolid(true);

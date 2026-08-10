@@ -56,6 +56,8 @@ namespace nexus {
       density = 24.2369 *kg/m3;
   else if (pressure/bar > 15.55 && pressure/bar < 15.65)
       density = 25.2173*kg/m3;
+  else if (pressure/bar > 15.9 && pressure/bar < 16.1)
+      density = 25.8672*kg/m3;
   else if (pressure/bar > 19.9 && pressure/bar < 20.1)
       density = 32.4066*kg/m3;
   else if (pressure/bar > 29.9 && pressure/bar < 30.1)
