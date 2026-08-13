@@ -196,6 +196,8 @@ void NextHDDEMOTrackingPlane::Construct()
     copper_plate_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
     sipm_board_logic  ->SetVisAttributes(G4VisAttributes::GetInvisible());
   }
+  // Print global SiPM positions and IDs for diagnostics
+  PrintSiPMPositions();
 
 }
 

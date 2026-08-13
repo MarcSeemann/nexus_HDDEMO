@@ -19,9 +19,15 @@
 /Geometry/NextHDDEMO/max_step_size 1. mm
 
 ##### GENERATOR #####
-/Generator/IonGenerator/atomic_number 83
-/Generator/IonGenerator/mass_number 214
-/Generator/IonGenerator/region TP_COPPER_PLATE
+#/Generator/IonGenerator/atomic_number 83
+#/Generator/IonGenerator/mass_number 214
+#/Generator/IonGenerator/region TP_COPPER_PLATE
+
+/Geometry/NextHDDEMO/specific_vertex 0 0 -630 mm
+/Generator/ScintGenerator/region AD_HOC_QUADRANT
+/Generator/ScintGenerator/nphotons 1
+
+
 
 ##### ACTIONS #####
 /Actions/DefaultEventAction/min_energy 0.6 MeV
@@ -34,6 +40,6 @@
 /PhysicsList/Nexus/electroluminescence false
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file NextHDDEMO.next
+/nexus/persistency/output_file NextHDDEMO_light_table_test.next
 ## eventType options: bb0nu, bb2nu, background
 /nexus/persistency/event_type background

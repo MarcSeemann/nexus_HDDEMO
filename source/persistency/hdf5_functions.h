@@ -73,6 +73,13 @@
         int final_proc;
   } particle_info_t;
 
+        typedef struct{
+          int64_t event_id;
+          float x;
+          float y;
+          float z;
+        } evt_pos_t;
+
   typedef struct{
     unsigned int sensor_id;
     char sensor_name[STRLEN];
@@ -107,6 +114,7 @@ typedef struct{
   hsize_t createSensorDataType();
   hsize_t createHitInfoType(bool str);
   hsize_t createParticleInfoType(bool str);
+  hsize_t createEventPosType();
   hsize_t createSensorPosType();
   hsize_t createStepType();
   hsize_t createStringMapType();
@@ -118,6 +126,7 @@ typedef struct{
   void writeSnsData(sns_data_t* snsData, hid_t dataset, hid_t memtype, hsize_t counter);
   void writeHit(hit_info_t* hitInfo, hid_t dataset, hid_t memtype, hsize_t counter);
   void writeParticle(particle_info_t* particleInfo, hid_t dataset, hid_t memtype, hsize_t counter);
+  void writeEvtPos(evt_pos_t* evtPos, hid_t dataset, hid_t memtype, hsize_t counter);
   void writeSnsPos(sns_pos_t* snsPos, hid_t dataset, hid_t memtype, hsize_t counter);
   void writeStep(step_info_t* step, hid_t dataset, hid_t memtype, hsize_t counter);
   void writeStringMap(string_map_t* strmap, hid_t dataset, hid_t memtype, hsize_t counter);

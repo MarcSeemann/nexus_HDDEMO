@@ -17,6 +17,8 @@
 #include "CylinderPointSampler2020.h"
 #include "SegmentPointSampler.h"
 
+#include <Randomize.hh>
+
 #include <G4Navigator.hh>
 #include <G4SystemOfUnits.hh>
 #include <G4PhysicalConstants.hh>
@@ -59,6 +61,7 @@ NextHDDEMOFieldCage::NextHDDEMOFieldCage():
 
   teflon_drift_length_ (240.* mm), //distance from the gate to the beginning of the cathode volume. 260 <- Original value for this parameter
   teflon_total_length_ (250. * mm), // No idea, but keep it > than teflon_drift_length_ 270
+  teflon_thickn_ (5. * mm),
 
   teflon_drift_length_2_ (240.* mm), //distance from the gate to the beginning of the cathode volume. 260
   teflon_total_length_2_ (250. * mm), // No idea, but keep it > than teflon_drift_length_2 270
@@ -1605,6 +1608,20 @@ G4ThreeVector NextHDDEMOFieldCage::GenerateVertex(const G4String& region) const
       VertexVolume =
         geom_navigator_->LocateGlobalPointAndSetup(glob_vtx, 0, false);
     } while (VertexVolume->GetName() != region);
+  }
+
+  else if (region == "AD_HOC_QUADRANT") {
+    G4VPhysicalVolume *VertexVolume;
+    G4double quadrant_radius = active_diam_/2. - teflon_thickn_;
+    do {
+      G4double x = quadrant_radius * G4UniformRand();
+      G4double y = quadrant_radius * G4UniformRand();
+      vertex = G4ThreeVector(x, y, active_zpos_);
+      G4ThreeVector glob_vtx(vertex);
+      glob_vtx = glob_vtx + G4ThreeVector(0, 0, -GetELzCoord());
+      VertexVolume =
+        geom_navigator_->LocateGlobalPointAndSetup(glob_vtx, 0, false);
+    } while (VertexVolume->GetName() != "ACTIVE");
   }
 
   else if (region == "CATHODE_RING") {

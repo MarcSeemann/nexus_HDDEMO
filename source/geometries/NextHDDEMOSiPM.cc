@@ -187,25 +187,31 @@ void NextHDDEMOSiPM::Construct()
   G4String sdname = "/" + sipm_name + "/SiPM";
   G4SDManager* sdmgr = G4SDManager::GetSDMpointer();
 
-  if (!sdmgr->FindSensitiveDetector(sdname, false)) {
-    SensorSD* sensdet = new SensorSD(sdname);
+  G4VSensitiveDetector* existing_sd = sdmgr->FindSensitiveDetector(sdname, false);
+  SensorSD* sensdet = nullptr;
 
-    if (sensor_depth_ == -1)
-      G4Exception("[NextHDDEMOSiPM]", "Construct()", FatalException,
-                  "Sensor Depth must be set before constructing");
+  if (!existing_sd) {
+      sensdet = new SensorSD(sdname);
 
-    if ((naming_order_ > 0) && (mother_depth_ == 0))
-      G4Exception("[NextHDDEMOSiPM]", "Construct()", FatalException,
-                  "Naming Order set without setting Mother Depth");
+      if (sensor_depth_ == -1)
+        G4Exception("[NextHDDEMOSiPM]", "Construct()", FatalException,
+                    "Sensor Depth must be set before constructing");
 
-    sensdet->SetDetectorVolumeDepth(sensor_depth_);
-    sensdet->SetMotherVolumeDepth(mother_depth_);
-    sensdet->SetDetectorNamingOrder(naming_order_);
-    sensdet->SetTimeBinning(time_binning_);
+      if ((naming_order_ > 0) && (mother_depth_ == 0))
+        G4Exception("[NextHDDEMOSiPM]", "Construct()", FatalException,
+                    "Naming Order set without setting Mother Depth");
 
-    G4SDManager::GetSDMpointer()->AddNewDetector(sensdet);
-    sens_logic_vol->SetSensitiveDetector(sensdet);
+      sensdet->SetDetectorVolumeDepth(sensor_depth_);
+      sensdet->SetMotherVolumeDepth(mother_depth_);
+      sensdet->SetDetectorNamingOrder(naming_order_);
+      sensdet->SetTimeBinning(time_binning_);
+
+      sdmgr->AddNewDetector(sensdet);
+  } else {
+      sensdet = dynamic_cast<SensorSD*>(existing_sd);
   }
+
+  sens_logic_vol->SetSensitiveDetector(sensdet);   // now always runs
 
   // VISIBILITY ////////////////////////////////////////////
 

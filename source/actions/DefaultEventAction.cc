@@ -11,6 +11,8 @@
 #include "Trajectory.h"
 #include "PersistencyManager.h"
 #include "IonizationHit.h"
+#include "SensorSD.h"
+#include "SensorHit.h"
 #include "FactoryBase.h"
 
 #include <G4Event.hh>
@@ -99,15 +101,42 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
       PersistencyManager* pm = dynamic_cast<PersistencyManager*>
         (G4VPersistencyManager::GetPersistencyManager());
 
-      if (!event->IsAborted() && edep>0) {
-	pm->InteractingEvent(true);
-      } else {
-	pm->InteractingEvent(false);
+      // Check whether this event has sensor hits (PMT/SIPM responses).
+      bool has_sensor_hits = false;
+      G4HCofThisEvent* hce = event->GetHCofThisEvent();
+      if (hce) {
+        G4SDManager* sdmgr = G4SDManager::GetSDMpointer();
+        G4HCtable* hct = sdmgr->GetHCtable();
+        for (auto i = 0; i < hct->entries(); ++i) {
+          G4String hcname = hct->GetHCname(i);
+          G4String sdname = hct->GetSDname(i);
+          if (hcname == SensorSD::GetCollectionUniqueName()) {
+            int hcid = sdmgr->GetCollectionID(sdname + "/" + hcname);
+            G4VHitsCollection* hits = hce->GetHC(hcid);
+            // G4VHitsCollection doesn't expose entries() — cast to
+            // SensorHitsCollection to access entries().
+            SensorHitsCollection* shc = dynamic_cast<SensorHitsCollection*>(hits);
+            if (shc && shc->entries() > 0) {
+              has_sensor_hits = true;
+              break;
+            }
+          }
+        }
       }
-      if (!event->IsAborted() && edep > energy_min_ && edep < energy_max_) {
-	pm->StoreCurrentEvent(true);
+
+      // Mark interacting if ionization edep or sensor hits detected
+      if (!event->IsAborted() && (edep > 0. || has_sensor_hits)) {
+        pm->InteractingEvent(true);
       } else {
-	pm->StoreCurrentEvent(false);
+        pm->InteractingEvent(false);
+      }
+
+      // Store the event if it passes the energy thresholds or if it has
+      // sensor hits (we want to persist sensor positions/response only).
+      if (!event->IsAborted() && ( (edep > energy_min_ && edep < energy_max_) || has_sensor_hits)) {
+        pm->StoreCurrentEvent(true);
+      } else {
+        pm->StoreCurrentEvent(false);
       }
 
     }

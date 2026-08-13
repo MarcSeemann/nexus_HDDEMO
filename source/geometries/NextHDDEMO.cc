@@ -224,6 +224,7 @@ namespace nexus {
     (region == "SEGMENT") ||
     (region == "SECTOR_AREA") ||
     (region == "SECTOR_VOL") ||
+             (region == "AD_HOC_QUADRANT") ||
              (region == "ACTIVE") ||
              (region == "CATHODE_RING") ||
              (region == "BUFFER") ||
@@ -248,9 +249,7 @@ namespace nexus {
       vertex = inner_elements_->GenerateVertex(region);
     }
     else if (region == "AD_HOC") {
-      // AD_HOC does not need to be shifted because it is passed by the user
       vertex = specific_vertex_;
-      return vertex;
     }
 
     // Lab walls

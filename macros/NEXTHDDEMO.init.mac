@@ -12,16 +12,18 @@
 /PhysicsList/RegisterPhysics G4RadioactiveDecayPhysics
 /PhysicsList/RegisterPhysics NexusPhysics
 /PhysicsList/RegisterPhysics G4StepLimiterPhysics
+/PhysicsList/RegisterPhysics G4OpticalPhysics
 
 /nexus/RegisterGeometry NextHDDEMO
 
-/nexus/RegisterGenerator IonGenerator
+#/nexus/RegisterGenerator IonGenerator
+/nexus/RegisterGenerator ScintillationGenerator
 
 /nexus/RegisterPersistencyManager PersistencyManager
 
 /nexus/RegisterRunAction DefaultRunAction
 /nexus/RegisterEventAction DefaultEventAction
-/nexus/RegisterTrackingAction DefaultTrackingAction
+/nexus/RegisterTrackingAction OpticalTrackingAction
 
 /nexus/RegisterMacro macros/NEXTHDDEMO.config.mac
 /nexus/RegisterDelayedMacro macros/physics/Bi214.mac

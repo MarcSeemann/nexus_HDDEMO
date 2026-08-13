@@ -21,7 +21,7 @@ using namespace nexus;
 
 HDF5Writer::HDF5Writer():
   file_(0), irun_(0), ismp_(0), ihit_(0),
-  ipart_(0), ipos_(0), istep_(0), istrmap_(0)
+  ipart_(0), ievtpos_(0), ipos_(0), istep_(0), istrmap_(0)
 {
 }
 
@@ -54,6 +54,10 @@ void HDF5Writer::Open(std::string fileName, bool debug, bool save_str)
   std::string particle_info_table_name = "particles";
   memtypeParticleInfo_ = createParticleInfoType(save_str);
   particleInfoTable_ = createTable(group, particle_info_table_name, memtypeParticleInfo_);
+
+  std::string event_pos_table_name = "event_positions";
+  memtypeEventPos_ = createEventPosType();
+  eventPosTable_ = createTable(group, event_pos_table_name, memtypeEventPos_);
 
   std::string sns_pos_table_name = "sns_positions";
   memtypeSnsPos_ = createSensorPosType();
@@ -179,6 +183,18 @@ void HDF5Writer::WriteParticleInfo(bool str, int64_t evt_number, int particle_in
   writeParticle(&trueInfo,  particleInfoTable_, memtypeParticleInfo_, ipart_);
 
   ipart_++;
+}
+
+void HDF5Writer::WriteEventPosInfo(int64_t evt_number, float x, float y, float z)
+{
+  evt_pos_t evtPos;
+  evtPos.event_id = evt_number;
+  evtPos.x = x;
+  evtPos.y = y;
+  evtPos.z = z;
+  writeEvtPos(&evtPos, eventPosTable_, memtypeEventPos_, ievtpos_);
+
+  ievtpos_++;
 }
 
 void HDF5Writer::WriteSensorPosInfo(unsigned int sensor_id, const char* sensor_name, float x, float y, float z)

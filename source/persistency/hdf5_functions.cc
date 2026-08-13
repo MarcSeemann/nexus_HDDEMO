@@ -113,6 +113,17 @@ hsize_t createParticleInfoType(bool str)
 }
 
 
+hsize_t createEventPosType()
+{
+  hsize_t memtype = H5Tcreate (H5T_COMPOUND, sizeof (evt_pos_t));
+  H5Tinsert (memtype, "event_id", HOFFSET (evt_pos_t, event_id), H5T_NATIVE_INT64);
+  H5Tinsert (memtype, "x", HOFFSET (evt_pos_t, x), H5T_NATIVE_FLOAT);
+  H5Tinsert (memtype, "y", HOFFSET (evt_pos_t, y), H5T_NATIVE_FLOAT);
+  H5Tinsert (memtype, "z", HOFFSET (evt_pos_t, z), H5T_NATIVE_FLOAT);
+  return memtype;
+}
+
+
 hsize_t createSensorPosType()
 {
   hid_t strtype = H5Tcopy(H5T_C_S1);
@@ -282,6 +293,26 @@ void writeParticle(particle_info_t* particleInfo, hid_t dataset, hid_t memtype, 
   hsize_t count[1] = {1};
   H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, count, NULL);
   H5Dwrite(dataset, memtype, memspace, file_space, H5P_DEFAULT, particleInfo);
+  H5Sclose(file_space);
+  H5Sclose(memspace);
+}
+
+void writeEvtPos(evt_pos_t* evtPos, hid_t dataset, hid_t memtype, hsize_t counter)
+{
+  hid_t memspace, file_space;
+
+  const hsize_t n_dims = 1;
+  hsize_t dims[n_dims] = {1};
+  memspace = H5Screate_simple(n_dims, dims, NULL);
+
+  dims[0] = counter+1;
+  H5Dset_extent(dataset, dims);
+
+  file_space = H5Dget_space(dataset);
+  hsize_t start[1] = {counter};
+  hsize_t count[1] = {1};
+  H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, count, NULL);
+  H5Dwrite(dataset, memtype, memspace, file_space, H5P_DEFAULT, evtPos);
   H5Sclose(file_space);
   H5Sclose(memspace);
 }

@@ -125,10 +125,8 @@ G4bool PersistencyManager::Store(const G4Event* event)
   if (store_steps_)
     StoreSteps();
 
-  // Store the trajectories of the event
-  StoreTrajectories(event->GetTrajectoryContainer());
-
-  // Store ionization hits and sensor hits
+  // Do not store particle trajectories or ionization hits here.
+  // Only store sensor (photosensor) information: positions and response.
   ihits_ = nullptr;
   hit_map_.clear();
   StoreHits(event->GetHCofThisEvent());
@@ -233,15 +231,10 @@ void PersistencyManager::StoreHits(G4HCofThisEvent* hce)
     // Fetch collection using the id number
     G4VHitsCollection* hits = hce->GetHC(hcid);
 
-    if (hcname == IonizationSD::GetCollectionUniqueName())
-      StoreIonizationHits(hits);
-    else if (hcname == SensorSD::GetCollectionUniqueName()) {
+    // Only persist sensor hit collections (we do not want to persist
+    // particle trajectories or ionization hit collections for this mode).
+    if (hcname == SensorSD::GetCollectionUniqueName()) {
       StoreSensorHits(hits);
-    } else {
-      G4String msg =
-        "Collection of hits '" + sdname + "/" + hcname
-        + "' is of an unknown type and will not be stored.";
-      G4Exception("[PersistencyManager]", "StoreHits()", JustWarning, msg);
     }
   }
 
