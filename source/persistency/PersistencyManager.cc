@@ -29,6 +29,7 @@
 #include <G4HCtable.hh>
 #include <G4RunManager.hh>
 #include <G4Run.hh>
+#include <G4PrimaryVertex.hh>
 
 #include <string>
 #include <sstream>
@@ -107,11 +108,13 @@ G4bool PersistencyManager::Store(const G4Event* event)
 
   if (!store_evt_) {
     TrajectoryMap::Clear();
+
     if (store_steps_) {
       SaveAllSteppingAction* sa = (SaveAllSteppingAction*)
         G4RunManager::GetRunManager()->GetUserSteppingAction();
       sa->Reset();
     }
+
     return false;
   }
 
@@ -122,11 +125,28 @@ G4bool PersistencyManager::Store(const G4Event* event)
     nevt_ = start_id_;
   }
 
+  // --------------------------------------------------
+  // Store the event vertex
+  // --------------------------------------------------
+
+  G4PrimaryVertex* vertex = event->GetPrimaryVertex();
+
+  if (vertex) {
+    G4ThreeVector pos = vertex->GetPosition();
+
+    h5writer_->WriteEventPosInfo(
+      nevt_,
+      (float) pos.x(),
+      (float) pos.y(),
+      (float) pos.z()
+    );
+  }
+
+  // --------------------------------------------------
+
   if (store_steps_)
     StoreSteps();
 
-  // Do not store particle trajectories or ionization hits here.
-  // Only store sensor (photosensor) information: positions and response.
   ihits_ = nullptr;
   hit_map_.clear();
   StoreHits(event->GetHCofThisEvent());
