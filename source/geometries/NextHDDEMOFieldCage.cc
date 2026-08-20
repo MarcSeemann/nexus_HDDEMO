@@ -1611,17 +1611,51 @@ G4ThreeVector NextHDDEMOFieldCage::GenerateVertex(const G4String& region) const
   }
 
   else if (region == "AD_HOC_QUADRANT") {
+    // Same fixed x,y quadrant as before, but z is now sampled across
+    // the full length of the detector gas volume (from the anode-side
+    // edge of the EL gap to the cathode-side edge of the buffer),
+    // instead of being fixed at active_zpos_.
     G4VPhysicalVolume *VertexVolume;
     G4double quadrant_radius = active_diam_/2. - teflon_thickn_;
+
+    // Cathode-side edge of the buffer (mirrors buffer_zpos computed in Construct())
+    G4double buffer_zpos = active_zpos_ + active_length_/2. + grid_thickn_ + buffer_length_/2.;
+    G4double z_min = el_gap_zpos_ - el_gap_length_/2.;   // anode-side end of the detector
+    G4double z_max = buffer_zpos + buffer_length_/2.;    // cathode-side end of the detector
+
     do {
       G4double x = quadrant_radius * G4UniformRand();
       G4double y = quadrant_radius * G4UniformRand();
-      vertex = G4ThreeVector(x, y, active_zpos_);
+      G4double z = z_min + (z_max - z_min) * G4UniformRand();
+      vertex = G4ThreeVector(x, y, z);
       G4ThreeVector glob_vtx(vertex);
       glob_vtx = glob_vtx + G4ThreeVector(0, 0, -GetELzCoord());
       VertexVolume =
         geom_navigator_->LocateGlobalPointAndSetup(glob_vtx, 0, false);
-    } while (VertexVolume->GetName() != "ACTIVE");
+    } while (VertexVolume->GetName() != "ACTIVE" &&
+             VertexVolume->GetName() != "BUFFER" &&
+             VertexVolume->GetName() != "EL_GAP");
+  }
+
+  else if (region == "AD_HOC_QUADRANT_EL") {
+    // Same fixed x,y quadrant, but z restricted to inside the EL gap
+    // (S2 region) only.
+    G4VPhysicalVolume *VertexVolume;
+    G4double quadrant_radius = active_diam_/2. - teflon_thickn_;
+
+    G4double z_min = el_gap_zpos_ - el_gap_length_/2.;
+    G4double z_max = el_gap_zpos_ + el_gap_length_/2.;
+
+    do {
+      G4double x = quadrant_radius * G4UniformRand();
+      G4double y = quadrant_radius * G4UniformRand();
+      G4double z = z_min + (z_max - z_min) * G4UniformRand();
+      vertex = G4ThreeVector(x, y, z);
+      G4ThreeVector glob_vtx(vertex);
+      glob_vtx = glob_vtx + G4ThreeVector(0, 0, -GetELzCoord());
+      VertexVolume =
+        geom_navigator_->LocateGlobalPointAndSetup(glob_vtx, 0, false);
+    } while (VertexVolume->GetName() != "EL_GAP");
   }
 
   else if (region == "CATHODE_RING") {
