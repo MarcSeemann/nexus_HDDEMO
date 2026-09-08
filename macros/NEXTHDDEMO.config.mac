@@ -24,9 +24,8 @@
 #/Generator/IonGenerator/region TP_COPPER_PLATE
 
 /Geometry/NextHDDEMO/specific_vertex 0 0 -630 mm
-#/Generator/ScintGenerator/region AD_HOC_QUADRANT
-/Generator/ScintGenerator/region AD_HOC_QUADRANT_EL
-/Generator/ScintGenerator/nphotons 1
+/Generator/ScintGenerator/region AD_HOC_QUADRANT
+/Generator/ScintGenerator/nphotons 10000
 
 
 
