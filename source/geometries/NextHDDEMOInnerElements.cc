@@ -95,6 +95,7 @@ namespace nexus {
     (region == "SECTOR_AREA") ||
     (region == "SECTOR_VOL") ||
       (region == "AD_HOC_QUADRANT") ||
+      (region == "AD_HOC_QUADRANT_EL") ||
         (region == "ACTIVE") ||
         (region == "CATHODE_RING") ||
         (region == "BUFFER") ||
