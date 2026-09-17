@@ -24,8 +24,8 @@
 #/Generator/IonGenerator/region TP_COPPER_PLATE
 
 /Geometry/NextHDDEMO/specific_vertex 0 0 -630 mm
-/Generator/ScintGenerator/region AD_HOC_QUADRANT_EL
-/Generator/ScintGenerator/nphotons 10000
+/Generator/ScintGenerator/region AD_HOC_QUADRANT
+/Generator/ScintGenerator/nphotons 1000
 
 
 
@@ -40,6 +40,6 @@
 /PhysicsList/Nexus/electroluminescence false
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file NextHDDEMO_light_table_full_z.next
+/nexus/persistency/output_file HDDEMO__20082026
 ## eventType options: bb0nu, bb2nu, background
 /nexus/persistency/event_type background
