@@ -10,6 +10,7 @@
 #include "DefaultEventAction.h"
 #include "Trajectory.h"
 #include "PersistencyManager.h"
+#include "IonizationSD.h"
 #include "IonizationHit.h"
 #include "SensorSD.h"
 #include "SensorHit.h"
@@ -101,7 +102,8 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
       PersistencyManager* pm = dynamic_cast<PersistencyManager*>
         (G4VPersistencyManager::GetPersistencyManager());
 
-      // Check whether this event has sensor hits (PMT/SIPM responses).
+      // Check whether this event has ionization hits in the gas or sensor hits.
+      bool has_ionization_hits = false;
       bool has_sensor_hits = false;
       G4HCofThisEvent* hce = event->GetHCofThisEvent();
       if (hce) {
@@ -110,6 +112,14 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
         for (auto i = 0; i < hct->entries(); ++i) {
           G4String hcname = hct->GetHCname(i);
           G4String sdname = hct->GetSDname(i);
+          if (hcname == IonizationSD::GetCollectionUniqueName()) {
+            int hcid = sdmgr->GetCollectionID(sdname + "/" + hcname);
+            G4VHitsCollection* hits = hce->GetHC(hcid);
+            IonizationHitsCollection* ihc = dynamic_cast<IonizationHitsCollection*>(hits);
+            if (ihc && ihc->entries() > 0) {
+              has_ionization_hits = true;
+            }
+          }
           if (hcname == SensorSD::GetCollectionUniqueName()) {
             int hcid = sdmgr->GetCollectionID(sdname + "/" + hcname);
             G4VHitsCollection* hits = hce->GetHC(hcid);
@@ -124,16 +134,17 @@ REGISTER_CLASS(DefaultEventAction, G4UserEventAction)
         }
       }
 
-      // Mark interacting if ionization edep or sensor hits detected
-      if (!event->IsAborted() && (edep > 0. || has_sensor_hits)) {
+      // Mark interacting if ionization edep, ionization hits, or sensor hits were detected.
+      if (!event->IsAborted() && (edep > 0. || has_ionization_hits || has_sensor_hits)) {
         pm->InteractingEvent(true);
       } else {
         pm->InteractingEvent(false);
       }
 
       // Store the event if it passes the energy thresholds or if it has
-      // sensor hits (we want to persist sensor positions/response only).
-      if (!event->IsAborted() && ( (edep > energy_min_ && edep < energy_max_) || has_sensor_hits)) {
+      // ionization hits in the gas (or sensor hits, if present).
+      if (!event->IsAborted() && ((edep > energy_min_ && edep < energy_max_) ||
+                                  has_ionization_hits || has_sensor_hits)) {
         pm->StoreCurrentEvent(true);
       } else {
         pm->StoreCurrentEvent(false);

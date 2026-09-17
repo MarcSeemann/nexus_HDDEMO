@@ -641,6 +641,49 @@ void NextHDDEMOFieldCage::BuildCathode()
 
 
 
+  // CATHODE (fake) GRID /////////////////////////////////////////////////
+  // Rather than drilling a physical mesh pattern into a gas volume (which
+  // would require someone to design the actual wire/hole geometry), the
+  // cathode mesh is modeled the same way as the gate and anode grids in
+  // the EL region: a thin disc of gas is given its own optical-properties
+  // table so that it absorbs/transmits optical photons according to the
+  // mesh's real transparency, while remaining otherwise transparent to
+  // drifting charge and to the field calculation. It is placed directly
+  // in front of the cathode plate/coating, in the (few-mm) slice of plain
+  // active gas that is not already covered by the fiber panels, so it
+  // does not overlap with any other volume.
+  G4Material* cath_grid_mat = materials::FakeDielectric(gas_, "cathode_grid_mat");
+  cath_grid_mat->SetMaterialPropertiesTable(opticalprops::FakeGrid(pressure_, temperature_,
+                                                                    cath_grid_transparency_,
+                                                                    grid_thickn_));
+
+  /// Dimensions & position: the grid sits just in front of the TPB-coated
+  /// face of the cathode. Its thickness is symbolic, as with the EL grids.
+  G4Tubs* cathode_grid_solid =
+    new G4Tubs("CATHODE_GRID", 0., cathode_ext_diam_/2., grid_thickn_/2., 0, twopi);
+
+  G4LogicalVolume* cathode_grid_logic =
+    new G4LogicalVolume(cathode_grid_solid, cath_grid_mat, "CATHODE_GRID");
+
+  G4double cathode_grid_zpos = coating_zpos - coating_thickn_/2. - grid_thickn_/2.;
+
+  new G4PVPlacement(0, G4ThreeVector(0., 0., cathode_grid_zpos),
+                    cathode_grid_logic, "CATHODE_GRID", mother_logic_,
+                    false, 0, false);
+
+  if (visibility_) {
+    cathode_grid_logic->SetVisAttributes(nexus::LightBlue());
+  } else {
+    cathode_grid_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+  }
+
+  /// Verbosity
+  if (verbosity_) {
+    G4cout << "Cathode grid starts in " << (cathode_grid_zpos - grid_thickn_/2.)/mm
+           << " mm and ends in " << (cathode_grid_zpos + grid_thickn_/2.)/mm
+           << " mm" << G4endl;
+  }
+
   // Cathode ring vertex generator
   cathode_gen_ = new CylinderPointSampler2020(0.,cathode_ext_diam_/2.,
                                            cathode_thickn_/2.,0., twopi, nullptr,
@@ -657,7 +700,7 @@ void NextHDDEMOFieldCage::BuildCathode()
   } else {
     G4VisAttributes cathode_col = nexus::DarkGrey();
     cathode_col.SetForceSolid(true);
-    cathode_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+    cathode_logic->SetVisAttributes(nexus::Red());
   }
 
 
@@ -849,14 +892,15 @@ void NextHDDEMOFieldCage::BuildELRegion()
   /// Visibilities
   if (visibility_) {
     G4VisAttributes light_blue = nexus::LightBlue();
-    el_gap_logic->SetVisAttributes(light_blue);
-    // el_gap_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+    // el_gap_logic->SetVisAttributes(light_blue);
+    el_gap_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
     
     // diel_grid_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
     diel_grid_logic->SetVisAttributes(light_blue);
   } else {
+    // el_gap_logic->SetVisAttributes(nexus::Red());
     el_gap_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
-    diel_grid_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+    diel_grid_logic->SetVisAttributes(nexus::LightBlue());
   }
 
   G4VisAttributes grey = nexus::DarkGrey();
@@ -1539,7 +1583,7 @@ void NextHDDEMOFieldCage::BuildFieldCage()
     hdpe_col.SetForceSolid(true);
     hdpe_tube_logic->SetVisAttributes(hdpe_col); // COLOUR OF THE BIG GREY TUBE
     // hdpe_tube_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
-    G4VisAttributes hold_col = nexus::LightGrey();
+    G4VisAttributes hold_col = nexus::Red();
     hold_col.SetForceSolid(true);
     act_holder_logic->SetVisAttributes(hold_col); // hold_col
     buff_holder_logic->SetVisAttributes(hold_col); // hold_col

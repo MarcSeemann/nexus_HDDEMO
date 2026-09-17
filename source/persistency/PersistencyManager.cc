@@ -147,6 +147,8 @@ G4bool PersistencyManager::Store(const G4Event* event)
   if (store_steps_)
     StoreSteps();
 
+  StoreTrajectories(event->GetTrajectoryContainer());   // <-- add this
+
   ihits_ = nullptr;
   hit_map_.clear();
   StoreHits(event->GetHCofThisEvent());
@@ -253,7 +255,9 @@ void PersistencyManager::StoreHits(G4HCofThisEvent* hce)
 
     // Only persist sensor hit collections (we do not want to persist
     // particle trajectories or ionization hit collections for this mode).
-    if (hcname == SensorSD::GetCollectionUniqueName()) {
+    if (hcname == IonizationSD::GetCollectionUniqueName()) {
+      StoreIonizationHits(hits);
+    } else if (hcname == SensorSD::GetCollectionUniqueName()) {
       StoreSensorHits(hits);
     }
   }

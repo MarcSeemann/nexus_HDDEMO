@@ -1,8 +1,8 @@
 ## ----------------------------------------------------------------------------
-## nexus | NEXTHDDEMO_full.config.mac
+## nexus | NEXTHDDEMO_Kr.config.mac
 ##
-## Configuration macro to simulate Kr-83 decays in the NEXT-10. geometry
-## with generation and transportation of optical photons.
+## Configuration macro to simulate Kr-83 decays in the NEXT-HDDEMO geometry
+## while keeping only ionization energy deposits in the gas.
 ##
 ## The NEXT Collaboration
 ## ----------------------------------------------------------------------------
@@ -15,7 +15,7 @@
 /process/em/verbose 0
 
 ##### GEOMETRY #####
-/Geometry/NextHDDEMO/pressure 10. bar
+/Geometry/NextHDDEMO/pressure 5. bar
 /Geometry/NextHDDEMO/max_step_size 1. mm
 /Geometry/NextHDDEMO/field_cage_vis 0
 
@@ -30,19 +30,7 @@
 #/Geometry/NextHDDEMO/ELlong_diff 0. mm/sqrt(cm)
 
 
-## fibers______________________________________________________
-/Geometry/NextHDDEMO/fiber_type Y11 ### (Y11, B2)
-/Geometry/NextHDDEMO/coated true
-
-## sensor______________________________________________________
-/Geometry/NextHDDEMO/sensor_type SiPM_Hamamatsu ### (PERFECT, SiPM_FBK, SiPM_Hamamatsu, PMT)
-/Geometry/NextHDDEMO/sensor_visibility true
-
-## teflon______________________________________________________
-/Geometry/NextHDDEMO/panels_visibility false
-
-
-/process/optical/processActivation Cerenkov false
+## fibers/sensor settings are left unused when optical photons are disabled.
 
 ##### GENERATOR #####
 #/Geometry/NextHDDEMO/vertex_zpos ACTIVE_CENTER ### (ACTIVE_CENTER, ACTIVE_END)
@@ -55,10 +43,10 @@
 
 /PhysicsList/Nexus/clustering          true # base-state true
 /PhysicsList/Nexus/drift               true # base-state true
-/PhysicsList/Nexus/electroluminescence true # base-state true
+/PhysicsList/Nexus/electroluminescence false # no optical photons requested
 /PhysicsList/Nexus/photoelectric       false # base-state false
 
 
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file NextHDDEMO_Kr.next
+/nexus/persistency/output_file NextHDDEMO_testing_Kr.next

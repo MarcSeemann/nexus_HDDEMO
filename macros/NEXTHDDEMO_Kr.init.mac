@@ -1,8 +1,8 @@
 ## ----------------------------------------------------------------------------
-## nexus | NEXTHDDEMO_full.init.mac
+## nexus | NEXTHDDEMO_Kr.init.mac
 ##
-## Initialization macro to simulate Kr-83 decays in the NEXT-10. geometry
-## with generation and transportation of optical photons.
+## Initialization macro to simulate Kr-83 decays in the NEXT-HDDEMO geometry
+## without optical photons or sensor response.
 ##
 ## The NEXT Collaboration
 ## ----------------------------------------------------------------------------
@@ -10,7 +10,6 @@
 /PhysicsList/RegisterPhysics G4EmStandardPhysics_option4
 /PhysicsList/RegisterPhysics G4DecayPhysics
 /PhysicsList/RegisterPhysics G4RadioactiveDecayPhysics
-/PhysicsList/RegisterPhysics G4OpticalPhysics
 /PhysicsList/RegisterPhysics NexusPhysics
 /PhysicsList/RegisterPhysics G4StepLimiterPhysics
 
@@ -22,12 +21,10 @@
 /nexus/RegisterPersistencyManager PersistencyManager
 
 /nexus/RegisterRunAction DefaultRunAction
-#/nexus/RegisterEventAction DefaultEventAction
+/nexus/RegisterEventAction DefaultEventAction
 
-#/nexus/RegisterTrackingAction DefaultTrackingAction
-#/nexus/RegisterTrackingAction OpticalTrackingAction
-/nexus/RegisterTrackingAction noOpticalTrackingAction
+/nexus/RegisterTrackingAction DefaultTrackingAction
 
-/nexus/RegisterSteppingAction AnalysisSteppingAction
+# No optical stepping action is needed when optical photons are disabled.
 
 /nexus/RegisterMacro macros/NEXTHDDEMO_Kr.config.mac
