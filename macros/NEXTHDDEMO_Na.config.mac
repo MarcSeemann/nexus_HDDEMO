@@ -1,0 +1,54 @@
+## ----------------------------------------------------------------------------
+## nexus | NEXTHDDEMO_Na.config.mac
+##
+## Configuration macro to simulate Na-22 decays in the NEXT-HDDEMO geometry
+## while keeping only ionization energy deposits in the gas.
+##
+## The NEXT Collaboration
+## ----------------------------------------------------------------------------
+
+##### VERBOSITY #####
+/run/verbose 1
+/event/verbose 0
+/tracking/verbose 0
+
+/process/em/verbose 0
+
+##### GEOMETRY #####
+/Geometry/NextHDDEMO/pressure 5. bar
+/Geometry/NextHDDEMO/max_step_size 1. mm
+/Geometry/NextHDDEMO/field_cage_vis 0
+
+## EL______________________________________________________
+/Geometry/NextHDDEMO/elfield false
+/Geometry/NextHDDEMO/EL_field 13 kV/cm
+
+## difusion______________________________________________________
+#/Geometry/NextHDDEMO/drift_transv_diff 0. mm/sqrt(cm)
+#/Geometry/NextHDDEMO/drift_long_diff 0. mm/sqrt(cm)
+#/Geometry/NextHDDEMO/ELtransv_diff 0. mm/sqrt(cm)
+#/Geometry/NextHDDEMO/ELlong_diff 0. mm/sqrt(cm)
+
+## Ion Generator
+/Generator/IonGenerator/atomic_number 11
+/Generator/IonGenerator/mass_number   22
+/Generator/IonGenerator/region        NA_SOURCE
+
+
+## fibers/sensor settings are left unused when optical photons are disabled.
+
+##### GENERATOR #####
+#/Geometry/NextHDDEMO/vertex_zpos ACTIVE_CENTER ### (ACTIVE_CENTER, ACTIVE_END)
+
+
+##### PHYSICS #####
+
+/PhysicsList/Nexus/clustering          true # base-state true
+/PhysicsList/Nexus/drift               true # base-state true
+/PhysicsList/Nexus/electroluminescence false # no optical photons requested
+/PhysicsList/Nexus/photoelectric       false # base-state false
+
+
+
+##### PERSISTENCY #####
+/nexus/persistency/output_file NextHDDEMO_plotting_Na.next

@@ -689,6 +689,22 @@ void NextHDDEMOFieldCage::BuildCathode()
                                            cathode_thickn_/2.,0., twopi, nullptr,
                                            G4ThreeVector(0., 0., cathode_zpos_));
 
+  // Pointlike Na-22 source generator.
+  // Placed at a fixed radius beyond the HDPE tube (the field cage's
+  // outermost radial component, "the big tube that surrounds the chamber"),
+  // so the source sits in open gas, clear of the panels, cathode hardware
+  // and field-cage wall, rather than on/inside any solid. Using rmin==rmax
+  // and phimin==phimax==0 with zhalflength==0 collapses the sampler to a
+  // single, reproducible (x,y,z) point (pointlike source); the emission
+  // direction of the decay products themselves is isotropic by nature of
+  // the nuclear decay, so no extra angular configuration is needed here.
+  G4double na_source_radius = hdpe_tube_ext_diam_/2. + 10. * mm; // clearance beyond HDPE tube
+  na_source_gen_ = new CylinderPointSampler2020(na_source_radius, na_source_radius,
+                                           0., 0., 0., nullptr,
+                                           G4ThreeVector(0., 0., cathode_zpos_/2));
+
+
+
 
   /// Visibilities
   if (visibility_) {
@@ -1612,6 +1628,7 @@ NextHDDEMOFieldCage::~NextHDDEMOFieldCage()
     delete hdpe_gen_;
     delete ring_gen_;
     delete cathode_gen_;
+    delete na_source_gen_;
     delete gate_gen_;
     delete anode_gen_;
     delete holder_gen_;
@@ -1700,6 +1717,15 @@ G4ThreeVector NextHDDEMOFieldCage::GenerateVertex(const G4String& region) const
       VertexVolume =
         geom_navigator_->LocateGlobalPointAndSetup(glob_vtx, 0, false);
     } while (VertexVolume->GetName() != "EL_GAP");
+  }
+  // Place Na-22 source outside the field cage (beyond the HDPE tube),
+  // in open gas. na_source_gen_ is a fixed single point (see its
+  // definition), not tied to any placed solid, so there is no physical
+  // volume to match by name here -- unlike the other regions below, this
+  // one must NOT loop on VertexVolume->GetName(), since no volume is ever
+  // named "NA_SOURCE" and such a loop would never terminate.
+  else if (region == "NA_SOURCE") {
+    vertex = na_source_gen_->GenerateVertex("VOLUME");
   }
 
   else if (region == "CATHODE_RING") {

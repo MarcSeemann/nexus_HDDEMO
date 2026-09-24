@@ -142,6 +142,7 @@ namespace nexus {
     CylinderPointSampler2020* active_area_section_gen_;
     CylinderPointSampler2020* active_area_sector_gen_;
     CylinderPointSampler2020* active_vol_sector_gen_;
+    CylinderPointSampler2020* na_source_gen_;
     CylinderPointSampler2020* active_gen_;
     CylinderPointSampler2020* buffer_gen_;
     CylinderPointSampler2020* teflon_gen_;
@@ -153,6 +154,7 @@ namespace nexus {
     CylinderPointSampler2020* gate_gen_;
     CylinderPointSampler2020* anode_gen_;
     CylinderPointSampler2020* holder_gen_;
+  
 
     // Geometry Navigator
     G4Navigator* geom_navigator_;
