@@ -25,7 +25,7 @@
 
 /Geometry/NextHDDEMO/specific_vertex 0 0 -630 mm
 /Generator/ScintGenerator/region AD_HOC_QUADRANT
-/Generator/ScintGenerator/nphotons 1
+/Generator/ScintGenerator/nphotons 1000
 
 
 
@@ -40,6 +40,6 @@
 /PhysicsList/Nexus/electroluminescence false
 
 ##### PERSISTENCY #####
-/nexus/persistency/output_file NextHDDEMO_testing.next
+/nexus/persistency/output_file NextHDDEMO_printing.next
 ## eventType options: bb0nu, bb2nu, background
 /nexus/persistency/event_type background

@@ -23,7 +23,7 @@
 
 /nexus/RegisterRunAction DefaultRunAction
 /nexus/RegisterEventAction DefaultEventAction
-/nexus/RegisterTrackingAction OpticalTrackingAction
+#/nexus/RegisterTrackingAction OpticalTrackingAction
 
 /nexus/RegisterMacro macros/NEXTHDDEMO.config.mac
 /nexus/RegisterDelayedMacro macros/physics/Bi214.mac

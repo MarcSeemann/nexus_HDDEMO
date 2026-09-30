@@ -150,6 +150,7 @@ G4bool PersistencyManager::Store(const G4Event* event)
   ihits_ = nullptr;
   hit_map_.clear();
   StoreHits(event->GetHCofThisEvent());
+  StoreTrajectories(event->GetTrajectoryContainer());
 
   nevt_++;
 
