@@ -1655,30 +1655,29 @@ G4ThreeVector NextHDDEMOFieldCage::GenerateVertex(const G4String& region) const
   }
 
   else if (region == "AD_HOC_QUADRANT") {
-    // Same fixed x,y quadrant as before, but z is now sampled across
-    // the full length of the detector gas volume (from the anode-side
-    // edge of the EL gap to the cathode-side edge of the buffer),
-    // instead of being fixed at active_zpos_.
     G4VPhysicalVolume *VertexVolume;
     G4double quadrant_radius = active_diam_/2. - teflon_thickn_;
 
-    // Cathode-side edge of the buffer (mirrors buffer_zpos computed in Construct())
-    G4double buffer_zpos = active_zpos_ + active_length_/2. + grid_thickn_ + buffer_length_/2.;
-    G4double z_min = el_gap_zpos_ - el_gap_length_/2.;   // anode-side end of the detector
-    G4double z_max = buffer_zpos + buffer_length_/2.;    // cathode-side end of the detector
+    // Anode-side end (bottom of the anode ring).
+    G4double z_min = anode_zpos_ - gate_ring_thickn_/2.;
+    // Far end, beyond the cathode. Set this so it reaches the teflon wall.
+    // Points outside the world volume are rejected automatically.
+    G4double z_max = cathode_zpos_ + 100. * mm;
 
+    const int max_tries = 100000;
+    int tries = 0;
     do {
       G4double x = quadrant_radius * G4UniformRand();
       G4double y = quadrant_radius * G4UniformRand();
       G4double z = z_min + (z_max - z_min) * G4UniformRand();
       vertex = G4ThreeVector(x, y, z);
-      G4ThreeVector glob_vtx(vertex);
-      glob_vtx = glob_vtx + G4ThreeVector(0, 0, -GetELzCoord());
-      VertexVolume =
-        geom_navigator_->LocateGlobalPointAndSetup(glob_vtx, 0, false);
-    } while (VertexVolume->GetName() != "ACTIVE" &&
-             VertexVolume->GetName() != "BUFFER" &&
-             VertexVolume->GetName() != "EL_GAP");
+      G4ThreeVector glob_vtx = vertex + G4ThreeVector(0, 0, -GetELzCoord());
+      VertexVolume = geom_navigator_->LocateGlobalPointAndSetup(glob_vtx, 0, false);
+
+      if (++tries > max_tries)
+        G4Exception("[NextHDDEMOFieldCage]", "GenerateVertex()", FatalException,
+                    "AD_HOC_QUADRANT: no valid vertex found after 100000 tries");
+    } while (!VertexVolume);
   }
 
   else if (region == "AD_HOC_QUADRANT_EL") {
