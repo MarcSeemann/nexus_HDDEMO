@@ -512,203 +512,156 @@ void NextHDDEMOFieldCage::BuildActive()
 
 void NextHDDEMOFieldCage::BuildCathode()
 {
-  // Cathode plate
-  G4Tubs* cathode_plate_solid =
-    new G4Tubs("CATHODE_SOLID_PLATE", 0,cathode_ext_diam_/2.,
-               cathode_thickn_/2., 0, twopi);
+  // ========================================================================
+  // FAKE CATHODE GRID
+  //
+  // The cathode is represented only by a thin gas volume with optical
+  // properties that reproduce the transparency of the real cathode mesh.
+  //
+  // There is intentionally NO:
+  //   - aluminium cathode plate
+  //   - Teflon plate
+  //   - TPB coating
+  //   - physical hole geometry
+  //
+  // The fake grid remains transparent to drifting charge and the electric
+  // field, while its optical properties model the real cathode mesh.
+  // ========================================================================
 
-  // Cathode hole geometry
-  G4Tubs* cathode_hole_solid = 
-    new G4Tubs("Hole", 0, cathode_hole_diam_/2., 
-                cathode_thickn_, 0, twopi);
-                
-  // --- Start with full solid plate
-  G4VSolid* cathode_solid = cathode_plate_solid;
+  G4Material* cath_grid_mat =
+    materials::FakeDielectric(
+      gas_,
+      "cathode_grid_mat"
+    );
 
-  int holeCount = 0;
-  G4double row_spacing  = cathode_hole_dist_ * std::sqrt(3.0) / 2.0;
-
-  // Helper lambda to add holes for a given row
-  auto addHoles = [&](int row_idx, int n_holes) {
-      G4double y = row_idx * row_spacing;
-      G4double x0 = -cathode_hole_dist_*(n_holes - 1)/2.;
-      // if (isOffset) x0 = x0 - cathode_hole_dist_/2.;
-
-      for (int i = 0; i < n_holes; ++i) {
-          G4double x = x0 + i * cathode_hole_dist_;
-          if (std::sqrt(x * x + y * y) + cathode_hole_diam_/2. <= cathode_ext_diam_/2.) {
-
-            cathode_solid = new G4SubtractionSolid(
-                  "CATHODE_PLATE",
-                  cathode_solid,
-                  cathode_hole_solid,
-                  nullptr,
-                  G4ThreeVector(x, y, 0)
-              );
-              holeCount++;
-          }
-      }
-  };
-
-  // Loop for rows -2, 0, +2 (5 holes)
-  for (int row : {-2, 0, 2}) {
-      addHoles(row, 5);
-  }
-
-  // Loop for rows -1, +1 (6 holes)
-  for (int row : {-1, 1}) {
-      addHoles(row, 6);
-  }
-
-  // Loop for rows -3, +3 (2 holes)
-  for (int row : {-3, 3}) {
-      addHoles(row, 2);
-  }
-
-  G4cout << "Number of holes in the cathode = " << holeCount << G4endl;
-
-  G4LogicalVolume* cathode_logic =
-    new G4LogicalVolume(cathode_solid, aluminium_, "CATHODE_PLATE");
-
-  G4OpticalSurface* opsur_al =
-    new G4OpticalSurface("POLISHED_AL_OPSURF", unified, polished, dielectric_metal);
-  opsur_al->SetMaterialPropertiesTable(opticalprops::PolishedAl());
-
-  new G4LogicalSkinSurface("POLISHED_AL_OPSURF", cathode_logic, opsur_al);
-
-  G4LogicalVolume* cathode_teflon_cap_logic =
-    new G4LogicalVolume(cathode_solid, teflon_, "CATHODE_TEFLON_PLATE");
-
-  G4OpticalSurface* opsur_teflon =
-    new G4OpticalSurface("TEFLON_OPSURF", unified, ground, dielectric_metal);
-  opsur_teflon->SetMaterialPropertiesTable(opticalprops::PTFE());
+  cath_grid_mat->SetMaterialPropertiesTable(
+    opticalprops::FakeGrid(
+      pressure_,
+      temperature_,
+      cath_grid_transparency_,
+      grid_thickn_
+    )
+  );
 
 
-  new G4LogicalSkinSurface("CATHODE_TEFLON_PLATE_OPSURF", cathode_teflon_cap_logic, opsur_teflon);
+  // ========================================================================
+  // CATHODE GRID GEOMETRY
+  // ========================================================================
 
-  // cathode_teflon_cap_logic->SetVisAttributes(nexus::White());
-  cathode_teflon_cap_logic->SetVisAttributes(G4VisAttributes::GetInvisible()); // White coating for the Cathode (it look like a star)
-   // COATING FOR THE TEFLON CAP /////////////////////////////////////////////
-  G4double coating_thickn_ = 5. * micrometer;
-
-  G4String coating_name = "CATHODE_TEFLON_PLATE_WLS";
-
-  G4Tubs* coating_solid_vol =
-    new G4Tubs(coating_name, 0, cathode_ext_diam_/2.,
-               coating_thickn_/2., 0, twopi);
-
-  G4Material* coating_mt = tpb_;
-
-  G4LogicalVolume* coating_logic_vol = new G4LogicalVolume(coating_solid_vol, coating_mt, coating_name);
-
-  G4OpticalSurface* coating_optSurf = new G4OpticalSurface(coating_name + "_OPSURF",
-                                                            unified, ground,
-                                                            dielectric_dielectric, .01);
-
-  new G4LogicalSkinSurface(coating_name + "_OPSURF", coating_logic_vol, coating_optSurf);
-
-  G4double coating_zpos = cathode_zpos_ - cathode_thickn_/2. + coating_thickn_/2.;
-
-  
-  G4VPhysicalVolume* cathode_teflon_phys =
-  new G4PVPlacement(0, G4ThreeVector(0., 0., coating_zpos + coating_thickn_/2. + cathode_thickn_/2.),
-                    cathode_teflon_cap_logic, "CATHODE_TEFLON_PLATE", mother_logic_,
-                    false, 0, false);
-  new G4PVPlacement(0, G4ThreeVector(0., 0., coating_zpos + coating_thickn_/2. + cathode_thickn_*3/2.),
-                    cathode_logic, "CATHODE_PLATE", mother_logic_,
-                    false, 0, false);
-
-  G4VPhysicalVolume* tpb_coating_phys =
-  new G4PVPlacement(nullptr, G4ThreeVector(0., 0., coating_zpos), coating_logic_vol,
-                    coating_name, mother_logic_, false, 0, false);
-
-  // Optical surface between xenon and TPB to model roughness /// 
-  G4OpticalSurface* gas_tpb_teflon_surf = 
-                  new G4OpticalSurface("gas_tpb_teflon_surf", unified, ground, dielectric_dielectric, .01);
-
-  new G4LogicalBorderSurface("gas_tpb_teflon_surf", tpb_coating_phys, active_phys_, gas_tpb_teflon_surf);
-  new G4LogicalBorderSurface("gas_tpb_teflon_surf", active_phys_, tpb_coating_phys, gas_tpb_teflon_surf);
-
-  // Optical surface between teflon and TPB /// 
-  G4OpticalSurface* tpb_teflon_surf = 
-                  new G4OpticalSurface("tpb_teflon_surf", unified, ground, dielectric_metal, .01);
-
-  new G4LogicalBorderSurface("tpb_teflon_surf", tpb_coating_phys, cathode_teflon_phys, tpb_teflon_surf);
-  new G4LogicalBorderSurface("tpb_teflon_surf", cathode_teflon_phys, tpb_coating_phys, gas_tpb_teflon_surf);
-                    
-  coating_logic_vol->SetVisAttributes(G4VisAttributes::GetInvisible());
-  // coating_logic_vol->SetVisAttributes(nexus::Yellow());
-
-
-
-  // CATHODE (fake) GRID /////////////////////////////////////////////////
-  // Rather than drilling a physical mesh pattern into a gas volume (which
-  // would require someone to design the actual wire/hole geometry), the
-  // cathode mesh is modeled the same way as the gate and anode grids in
-  // the EL region: a thin disc of gas is given its own optical-properties
-  // table so that it absorbs/transmits optical photons according to the
-  // mesh's real transparency, while remaining otherwise transparent to
-  // drifting charge and to the field calculation. It is placed directly
-  // in front of the cathode plate/coating, in the (few-mm) slice of plain
-  // active gas that is not already covered by the fiber panels, so it
-  // does not overlap with any other volume.
-  G4Material* cath_grid_mat = materials::FakeDielectric(gas_, "cathode_grid_mat");
-  cath_grid_mat->SetMaterialPropertiesTable(opticalprops::FakeGrid(pressure_, temperature_,
-                                                                    cath_grid_transparency_,
-                                                                    grid_thickn_));
-
-  /// Dimensions & position: the grid sits just in front of the TPB-coated
-  /// face of the cathode. Its thickness is symbolic, as with the EL grids.
   G4Tubs* cathode_grid_solid =
-    new G4Tubs("CATHODE_GRID", 0., cathode_ext_diam_/2., grid_thickn_/2., 0, twopi);
+    new G4Tubs(
+      "CATHODE_GRID",
+      0.,
+      cathode_ext_diam_/2.,
+      grid_thickn_/2.,
+      0,
+      twopi
+    );
 
   G4LogicalVolume* cathode_grid_logic =
-    new G4LogicalVolume(cathode_grid_solid, cath_grid_mat, "CATHODE_GRID");
+    new G4LogicalVolume(
+      cathode_grid_solid,
+      cath_grid_mat,
+      "CATHODE_GRID"
+    );
 
-  G4double cathode_grid_zpos = coating_zpos - coating_thickn_/2. - grid_thickn_/2.;
 
-  new G4PVPlacement(0, G4ThreeVector(0., 0., cathode_grid_zpos),
-                    cathode_grid_logic, "CATHODE_GRID", mother_logic_,
-                    false, 0, false);
+  // ========================================================================
+  // CATHODE GRID POSITION
+  //
+  // Place the symbolic grid at the cathode position.
+  // ========================================================================
+
+  G4double cathode_grid_zpos =
+    cathode_zpos_ - grid_thickn_/2.;
+
+  G4VPhysicalVolume* cathode_grid_phys =
+    new G4PVPlacement(
+      nullptr,
+      G4ThreeVector(
+        0.,
+        0.,
+        cathode_grid_zpos
+      ),
+      cathode_grid_logic,
+      "CATHODE_GRID",
+      mother_logic_,
+      false,
+      0,
+      false
+    );
+
+
+  // ========================================================================
+  // VISIBILITY
+  // ========================================================================
 
   if (visibility_) {
-    cathode_grid_logic->SetVisAttributes(nexus::LightBlue());
+
+    cathode_grid_logic->SetVisAttributes(
+      nexus::LightBlue()
+    );
+
   } else {
-    cathode_grid_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
+
+    cathode_grid_logic->SetVisAttributes(
+      nexus::LightBlue()
+    );
   }
 
-  /// Verbosity
+
+  // ========================================================================
+  // VERBOSITY
+  // ========================================================================
+
   if (verbosity_) {
-    G4cout << "Cathode grid starts in " << (cathode_grid_zpos - grid_thickn_/2.)/mm
-           << " mm and ends in " << (cathode_grid_zpos + grid_thickn_/2.)/mm
-           << " mm" << G4endl;
-  }
 
-  // Cathode ring vertex generator
-  cathode_gen_ = new CylinderPointSampler2020(0.,cathode_ext_diam_/2.,
-                                           cathode_thickn_/2.,0., twopi, nullptr,
-                                           G4ThreeVector(0., 0., cathode_zpos_));
+    G4cout
+      << "Cathode grid starts in "
+      << (cathode_grid_zpos - grid_thickn_/2.)/mm
+      << " mm and ends in "
+      << (cathode_grid_zpos + grid_thickn_/2.)/mm
+      << " mm"
+      << G4endl;
 
-
-  /// Visibilities
-  if (visibility_) {
-    G4VisAttributes grey = nexus::LightGrey();
-    G4VisAttributes cathode_col = nexus::DarkGrey();
-    cathode_col.SetForceSolid(true);
-    cathode_logic->SetVisAttributes(cathode_col);
-    // cathode_logic->SetVisAttributes(G4VisAttributes::GetInvisible());
-  } else {
-    G4VisAttributes cathode_col = nexus::DarkGrey();
-    cathode_col.SetForceSolid(true);
-    cathode_logic->SetVisAttributes(nexus::Red());
+    G4cout
+      << "Cathode grid centre z: "
+      << cathode_grid_zpos/mm
+      << " mm"
+      << G4endl;
   }
 
 
-  /// Verbosity
-  if (verbosity_) {
-    G4cout << "Cathode grid pos z: " << (cathode_zpos_)/mm << " mm" << G4endl;
-  }
+  // ========================================================================
+  // CATHODE RING VERTEX GENERATOR
+  //
+  // Kept unchanged from the original implementation.
+  // ========================================================================
 
+  cathode_gen_ =
+    new CylinderPointSampler2020(
+      0.,
+      cathode_ext_diam_/2.,
+      cathode_thickn_/2.,
+      0.,
+      twopi,
+      nullptr,
+      G4ThreeVector(
+        0.,
+        0.,
+        cathode_zpos_
+      )
+    );
+
+
+  // ========================================================================
+  // NOTE:
+  //
+  // There are deliberately no optical border/skin surfaces here.
+  //
+  // The optical behaviour of the cathode is entirely determined by the
+  // material properties assigned to cath_grid_mat through FakeGrid().
+  // ========================================================================
 }
 
 
