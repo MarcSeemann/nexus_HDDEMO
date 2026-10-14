@@ -15,6 +15,7 @@
 #include <G4UserSteppingAction.hh>
 #include <globals.hh>
 #include <map>
+#include <G4OpBoundaryProcess.hh>
 
 class G4Step;
 
@@ -36,6 +37,7 @@ namespace nexus {
   private:
     typedef std::map<G4String, int> detectorCounts;
     detectorCounts my_counts_;
+    G4OpBoundaryProcess* fBoundaryProcess = nullptr;
   };
 
 } // namespace nexus

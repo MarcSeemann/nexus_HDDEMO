@@ -24,14 +24,14 @@ namespace nexus {
   public:
     // Constructor for a generic wavelength shifting optical fiber
     GenericWLSFiber(G4String    name,
-                    G4bool      verbosity,
-                    G4bool      isround,          // true if "round"  or false if "square"
+                    G4bool      isround,            // "round"  or "square"
                     G4double    thickness,        // diameter or side
                     G4double    length,
+                    G4double    clad_percent,        // percentage of clad thickness w.r.t. diameter
                     G4bool      doubleclad,
                     G4bool      with_coating,
-                    G4Material* core_material,
                     G4Material* coating_material,
+                    G4Material* core_material,
                     G4bool      visibility);
 
     // Destructor
@@ -61,10 +61,10 @@ namespace nexus {
     void BuildSquareFiber();
 
     G4String    name_;
-    G4bool      verbosity_;
     G4bool      isround_;
     G4double    thickness_;
     G4double    length_;
+    G4double    clad_percent_;
     G4double    core_rad_;
     G4double    iclad_rad_;
     G4double    oclad_rad_;

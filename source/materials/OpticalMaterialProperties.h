@@ -81,7 +81,23 @@ namespace opticalprops {
 
   G4MaterialPropertiesTable* PMMA();
 
+  G4MaterialPropertiesTable* PMMA_outer();
+
+  G4MaterialPropertiesTable* GArXe(G4double sc_yield,
+    G4double e_lifetime=1000.*ms,
+    G4int ppm=1000, G4double pressure=1.0*bar);
+  
+  G4MaterialPropertiesTable* PerfectAbsorber();
+
+  G4MaterialPropertiesTable* specularspikeVIKUITI();
+
+  G4MaterialPropertiesTable* specularlobeVIKUITI();
+
+  G4MaterialPropertiesTable* diffusiveVIKUITI();
+
   G4MaterialPropertiesTable* XXX();
+
+
 
 
   constexpr G4double optPhotMinE_ =  0.2  * eV;
@@ -92,6 +108,7 @@ namespace opticalprops {
   // Constant that allows to convert nm to eV:
   // nm_to_eV_ / wavelength (nm) = energy (eV)
   constexpr G4double nm_to_eV_ = h_Planck * c_light * 1.e6;
+  constexpr G4double hc_ = h_Planck * c_light;
 
 
 } // end namespace opticalprops

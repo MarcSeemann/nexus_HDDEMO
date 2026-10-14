@@ -18,6 +18,7 @@
 #include <G4OpticalPhoton.hh>
 #include <G4OpBoundaryProcess.hh>
 #include <G4VPhysicalVolume.hh>
+#include <G4SystemOfUnits.hh>
 
 using namespace nexus;
 
@@ -46,7 +47,37 @@ AnalysisSteppingAction::~AnalysisSteppingAction()
 void AnalysisSteppingAction::UserSteppingAction(const G4Step* step)
 {
   G4ParticleDefinition* pdef = step->GetTrack()->GetDefinition();
+  if (pdef != G4OpticalPhoton::Definition()) return;
+  // TEMPORARY CHECK: prevent near-infinite bouncing of photons
+  if (!fBoundaryProcess) {
+    G4ProcessVector* pv = pdef->GetProcessManager()->GetProcessList();
+    for (size_t i = 0; i < pv->size(); i++) {
+        if ((*pv)[i]->GetProcessName() == "OpBoundary") {
+            fBoundaryProcess = (G4OpBoundaryProcess*)(*pv)[i];
+            break;
+        }
+    }
+  }
 
+  G4Track* track = step->GetTrack();
+
+  G4int tid = track->GetTrackID();
+  G4StepPoint* preStepPoint  = step->GetPreStepPoint();
+  G4StepPoint* postStepPoint = step->GetPostStepPoint();
+
+
+  // Per-bounce loss: stand-in for unmodeled surface roughness. Every TIR
+  // event has a small chance of representing a scattering/absorption
+  // event that isn't in the idealized geometry.
+  const G4double kBounceSurvivalProb = 1-5e-4; // tune — see note below
+
+  if (postStepPoint->GetStepStatus() == fGeomBoundary && fBoundaryProcess &&
+      fBoundaryProcess->GetStatus() == TotalInternalReflection) {
+      if (G4UniformRand() > kBounceSurvivalProb) {
+          track->SetTrackStatus(fStopAndKill);
+          return;   // discarded — never reaches the detection check below
+      }
+  }
   //Check whether the track is an optical photon
   if (pdef != G4OpticalPhoton::Definition()) return;
 

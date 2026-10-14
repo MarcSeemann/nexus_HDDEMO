@@ -952,8 +952,8 @@ void Next100FieldCage::BuildFiberBarrel()
 
     // fiber ////////////////////////////////////////////////////
 
-    fiber_ = new GenericWLSFiber(fiber_type_, false, true, fiber_diameter_,
-      fiber_length, true, coated_, this_fiber, this_coating, true);
+    fiber_ = new GenericWLSFiber(fiber_type_, true, fiber_diameter_,
+      fiber_length, 0.02, true, coated_, this_coating, this_fiber, true);
 
     fiber_->SetCoreOpticalProperties(this_fiber_optical);
     fiber_->SetCoatingOpticalProperties(this_coating_optical);

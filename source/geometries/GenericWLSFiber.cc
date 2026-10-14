@@ -27,26 +27,26 @@ using namespace nexus;
 
 
 GenericWLSFiber::GenericWLSFiber(G4String    name,
-                                 G4bool      verbosity,
                                  G4bool      isround,
                                  G4double    thickness,
                                  G4double    length,
+                                 G4double    clad_percent,
                                  G4bool      doubleclad,
                                  G4bool      with_coating,
-                                 G4Material* core_mat,
                                  G4Material* coating_mat,
+                                 G4Material* core_mat,
                                  G4bool      visibility):
   GeometryBase    (),
   name_           (name),
-  verbosity_      (verbosity),
-  isround_        (isround),       // true if "round"  or false if "square"
+  isround_        (isround),         // "round"  or "square"
   thickness_      (thickness),     // Diameter (for round), Side (for square)
   length_         (length),
+  clad_percent_   (clad_percent),  // Percentage of clad thickness w.r.t. diameter
   doubleclad_     (doubleclad),
   with_coating_   (with_coating),
-  core_mat_       (core_mat),
   coating_mat_    (coating_mat),
   coating_optProp_(nullptr),
+  core_mat_       (core_mat),
   core_optProp_   (nullptr),
   visibility_     (visibility)
 {
@@ -61,8 +61,9 @@ GenericWLSFiber::~GenericWLSFiber()
 void GenericWLSFiber::ComputeDimensions()
 {
   // According to Kuraray specifications, each one of the cladding layers
-  // has a thickness of 2% the fiber thickness (side, or diameter)
-  G4double clad_thickness = 0.02 * thickness_;
+  // has a thickness of 2% the fiber thickness (side, or diameter).
+  // For Luxium fibers, the cladding thickness is 3% of the fiber thickness.
+  G4double clad_thickness = clad_percent_ * thickness_;
 
   // The coating (always of 1 micron thickness)
   G4double coating_thickness = 1. * um;
@@ -87,11 +88,16 @@ void GenericWLSFiber::ComputeDimensions()
 void GenericWLSFiber::DefineMaterials()
 {
   // Fiber cladding materials to be used ...
-  // PMMA:       in single cladding, and for inner in muticladding
+  // PMMA:       in single cladding, and for inner in muticladding !!if outer in single cladding, PMMA_outer needs to be used!!
   // FPethylene: for outer in muticladding
 
   iclad_mat_ = materials::PMMA();
-  iclad_mat_->SetMaterialPropertiesTable(opticalprops::PMMA());
+  if (doubleclad_) {
+    iclad_mat_->SetMaterialPropertiesTable(opticalprops::PMMA());
+  } else {;
+    iclad_mat_->SetMaterialPropertiesTable(opticalprops::PMMA_outer());
+  }
+  
 
   // If 2 claddings, defining the outer cladding material
   if (doubleclad_) {
@@ -131,7 +137,7 @@ void GenericWLSFiber::BuildRoundFiber()
   G4LogicalVolume* coating_logic;
   if (with_coating_) {
     G4String coating_name = name_ + "_WLS";
-    if (verbosity_) G4cout << "**** Building COATING " << coating_name << G4endl;
+    G4cout << "**** Building COATING " << coating_name << G4endl;
     G4Tubs* coating_solid =
       new G4Tubs(coating_name, 0., thickness_/2., length_/2., 0., 360.*deg);
     coating_logic =
@@ -152,7 +158,7 @@ void GenericWLSFiber::BuildRoundFiber()
   G4LogicalVolume* oclad_logic;
   if (doubleclad_) {
     G4String oclad_name = name_ + "_OCLAD";
-    if (verbosity_) G4cout << "**** Building OCLAD " << oclad_name << G4endl;
+    G4cout << "**** Building OCLAD " << oclad_name << G4endl;
     G4Tubs* oclad_solid =
       new G4Tubs(oclad_name, 0., oclad_rad_, length_/2., 0., 360.*deg);
     oclad_logic =
@@ -169,7 +175,7 @@ void GenericWLSFiber::BuildRoundFiber()
 
   // Inner Cladding (always built)
   G4String iclad_name = name_ + "_ICLAD";
-  if (verbosity_) G4cout << "**** Building ICLAD " << iclad_name << G4endl;
+  G4cout << "**** Building ICLAD " << iclad_name << G4endl;
   G4Tubs* iclad_solid =
     new G4Tubs(iclad_name, 0., iclad_rad_, length_/2., 0., 360.*deg);
   G4LogicalVolume* iclad_logic =
@@ -182,7 +188,7 @@ void GenericWLSFiber::BuildRoundFiber()
                       iclad_name, innermost_logic, false, 0, false);
 
   // Fiber core (always inside the iclad)
-  if (verbosity_) G4cout << "**** Building CORE " << name_ << G4endl;
+  G4cout << "**** Building CORE " << name_ << G4endl;
   G4Tubs* core_solid =
     new G4Tubs(name_, 0., core_rad_, length_/2., 0., 360.*deg);
   G4LogicalVolume* core_logic =
@@ -255,7 +261,7 @@ void GenericWLSFiber::BuildSquareFiber()
       new G4PVPlacement(nullptr, G4ThreeVector(0., 0., 0.), oclad_logic,
                         oclad_name, innermost_logic, false, 0, false);
 
-    innermost_logic = oclad_logic;
+    innermost_logic = oclad_logic; 
   }
 
   // Inner Cladding (always built)
