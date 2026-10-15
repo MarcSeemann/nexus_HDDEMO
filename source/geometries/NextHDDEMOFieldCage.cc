@@ -112,7 +112,7 @@ NextHDDEMOFieldCage::NextHDDEMOFieldCage():
   el_gap_gen_disk_zmin_(0.), el_gap_gen_disk_zmax_(1.),
   // Fiber Barrel
   fiber_type_ ("Y11"), // type of fibers attached to the teflon panels (Y11 or B2)
-  sensor_type_ ("PERFECT"),
+  sensor_type_ ("SiPM_Hamamatsu"),
   fiber_diameter_(1. * mm), 
   panel_width_ (59.9 * mm), //60
   teflon_cathode_gap (6.2 * mm),
