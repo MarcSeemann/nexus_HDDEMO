@@ -33,3 +33,6 @@ __pycache__
 /.cache/
 /.direnv/
 /compile_commands.json
+
+# parameter scan outputs
+scans/
