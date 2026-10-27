@@ -89,6 +89,7 @@ namespace nexus {
     G4String sensor_type_;        // SiPM, PMT, PERFECT, ...
     G4bool sensor_visibility_;
     G4double sens_z;
+    G4double sensor_gap_; // gas gap between fiber end and sensor face
     //// barrel
     G4bool panels_visibility_;
     G4bool fibers_visibility_;

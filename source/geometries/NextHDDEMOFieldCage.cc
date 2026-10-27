@@ -119,7 +119,8 @@ NextHDDEMOFieldCage::NextHDDEMOFieldCage():
   sensor_visibility_ (true),
   panels_visibility_ (true),
   fibers_visibility_ (true),
-  coated_(true)
+  coated_(true),
+  sensor_gap_(0. * mm)
 {
   /// Define new categories
   new G4UnitDefinition("kilovolt/cm","kV/cm","Electric field", kilovolt/cm);
@@ -224,6 +225,13 @@ NextHDDEMOFieldCage::NextHDDEMOFieldCage():
   msg_->DeclareProperty("fibers_visibility", fibers_visibility_, "Make fibers visible (true or false)");
   msg_->DeclareProperty("coated", coated_, "Coat fibers with WLS coating");
 
+  G4GenericMessenger::Command& sensor_gap_cmd =
+    msg_->DeclareProperty("sensor_gap", sensor_gap_,
+                          "Gas gap between the fiber end and the sensor face");
+  sensor_gap_cmd.SetUnitCategory("Length");
+  sensor_gap_cmd.SetParameterName("sensor_gap", false);
+  sensor_gap_cmd.SetRange("sensor_gap>=0.");
+
 
 }
 
@@ -250,7 +258,9 @@ void NextHDDEMOFieldCage::Construct()
 
   sens_z = 1. * mm;
   fiber_end_z = 0.1 * mm;
-  fiber_length = panel_length_ - (sens_z + fiber_end_z);
+  // The sensor stays fixed; the fiber is shortened at the sensor end to open the gap.
+  fiber_length = panel_length_ - (sens_z + fiber_end_z + sensor_gap_);
+  G4cout << "[FiberBarrel] Fiber-sensor gap: " << sensor_gap_/mm << " mm" << G4endl;
   // fiber_length = 400 * mm;
   // ****************************************************************************
 
@@ -309,7 +319,7 @@ void NextHDDEMOFieldCage::Construct()
   // z_f     = z_p + fiber_length/2. + sens_z - panel_length_/2.; // z-pos for the fibers
   z_f = z_p + panel_length_/2. - fiber_length/2.; // z-pos for the fibers
   z_fend  = z_f + (fiber_length + fiber_end_z)/2.; // z-pos for the fibers' Al ends
-  z_s     = z_f - (fiber_length + sens_z)/2.; // z-pos for the sensors
+  z_s     = z_f - (fiber_length + sens_z)/2. - sensor_gap_; // z-pos for the sensors
 
   //// Teflon panels distance to the center
   h = std::sqrt((active_diam_/2.)*(active_diam_/2.)  - (panel_width_/2.)*(panel_width_/2.)) - panel_thickness_/2.;
