@@ -224,6 +224,12 @@ NextHDDEMOFieldCage::NextHDDEMOFieldCage():
   msg_->DeclareProperty("fibers_visibility", fibers_visibility_, "Make fibers visible (true or false)");
   msg_->DeclareProperty("coated", coated_, "Coat fibers with WLS coating");
 
+  G4GenericMessenger::Command& cath_transp_cmd =
+    msg_->DeclareProperty("cathode_transparency", cath_grid_transparency_,
+                          "Optical transparency of the cathode grid (0 < T <= 1)");
+  cath_transp_cmd.SetParameterName("cathode_transparency", false);
+  cath_transp_cmd.SetRange("cathode_transparency>0. && cathode_transparency<=1.");
+
 
 }
 
@@ -527,6 +533,9 @@ void NextHDDEMOFieldCage::BuildCathode()
   // The fake grid remains transparent to drifting charge and the electric
   // field, while its optical properties model the real cathode mesh.
   // ========================================================================
+
+  G4cout << "[NextHDDEMOFieldCage] Cathode grid transparency: "
+         << cath_grid_transparency_ << G4endl;
 
   G4Material* cath_grid_mat =
     materials::FakeDielectric(

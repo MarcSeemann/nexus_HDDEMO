@@ -115,7 +115,8 @@ namespace nexus {
     G4bool elfield_;
     G4double ELelectric_field_; ///< electric field in the EL region
     // Transparencies of grids
-    const G4double cath_grid_transparency_, el_grid_transparency_;
+    G4double cath_grid_transparency_;
+    const G4double el_grid_transparency_;
 
     //Step size
     G4double max_step_size_;

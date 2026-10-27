@@ -686,7 +686,8 @@ namespace opticalprops {
     mpt->AddConstProperty("ATTACHMENT",         xenon_pt->GetConstProperty("ATTACHMENT"), 1);
 
     // ABSORPTION LENGTH
-    G4double abs_length   = -thickness/log(transparency);
+    // A fully transparent grid (T = 1) gives log(T) = 0: use no absorption.
+    G4double abs_length   = (transparency < 1.) ? -thickness/log(transparency) : DBL_MAX;
     std::vector<G4double> abs_energy = {optPhotMinE_, optPhotMaxE_};
     std::vector<G4double> absLength  = {abs_length, abs_length};
     mpt->AddProperty("ABSLENGTH", abs_energy, absLength);
